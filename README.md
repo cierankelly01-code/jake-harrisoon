@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Marmion Building Services
 
-## Getting Started
+Lead-generation, tender-response and conversion platform for Marmion Building Services Ltd —
+built to the master brief in `MARMION BUILDING SERVICES — MASTER BUILD PROMPT`.
 
-First, run the development server:
+## Stack
 
-```bash
+Next.js 15 (App Router) · TypeScript strict · Tailwind CSS v4 · Supabase (Postgres/Storage) ·
+Resend · Stripe · Cloudflare Turnstile · `@react-pdf/renderer`.
+
+## Getting started
+
+```
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+See `.env.example` for the environment variables that switch each integration from "stub" mode
+(logs instead of calling out) to live. Nothing needs to be configured to run and test the site
+locally.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project docs
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `PROGRESS.md` — what's built, what's next, mapped to the brief's own build order
+- `HANDOFF.md` — how to edit prices, business facts, and everything a non-developer needs
+- `CONTENT_NEEDED.md` — every fact still needed from the client, grouped by page
+- `CLIENT_ASSETS_NEEDED.md` — photography and documents still needed
+- `supabase/migrations/` — database schema
 
-## Learn More
+## Design system
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`src/app/globals.css` holds every design token (palette, type scale, spacing, motion). The
+signature component is the Docket (`src/components/ui/docket.tsx`) — see the master brief's §5
+for the "Flame Test" rationale behind the palette and the amber-is-emergency-only rule.
