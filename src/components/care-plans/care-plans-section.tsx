@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { CARE_PLANS, type CarePlanTier } from "@/lib/care-plans/tiers";
 import { signUpForCarePlan, type CarePlanActionState } from "@/app/care-plans/actions";
 
@@ -17,9 +17,11 @@ export function CarePlansSection() {
   const [selectedTier, setSelectedTier] = useState<CarePlanTier | null>(null);
   const [state, formAction, pending] = useActionState(signUpForCarePlan, initialState);
 
-  if (state.status === "redirect" && state.url && typeof window !== "undefined") {
-    window.location.href = state.url;
-  }
+  useEffect(() => {
+    if (state.status === "redirect" && state.url) {
+      window.location.href = state.url;
+    }
+  }, [state]);
 
   return (
     <div className="flex flex-col gap-16">
@@ -77,6 +79,11 @@ export function CarePlansSection() {
           ) : (
             <form action={formAction} className="flex flex-col gap-4">
               <input type="hidden" name="tier" value={selectedTier} />
+              {/* Honeypot — visually hidden, not display:none */}
+              <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
+                <label htmlFor="care-plan-website">Leave this field empty</label>
+                <input id="care-plan-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+              </div>
               <h3 className="font-display text-xl" style={{ color: "var(--ink)" }}>
                 Sign up — {CARE_PLANS.find((p) => p.tier === selectedTier)?.name} plan
               </h3>
@@ -95,7 +102,11 @@ export function CarePlansSection() {
               >
                 {pending ? "Redirecting to payment…" : "Continue to payment"}
               </button>
-              {state.status === "error" && <p style={{ color: "var(--amber)" }}>{state.message}</p>}
+              {state.status === "error" && (
+                <p style={{ color: "var(--amber-ink)" }} role="alert">
+                  {state.message}
+                </p>
+              )}
             </form>
           )}
         </div>

@@ -1,4 +1,4 @@
-const SECTORS = [
+export const SECTORS = [
   "Main contractors",
   "Housing associations",
   "Local authority",

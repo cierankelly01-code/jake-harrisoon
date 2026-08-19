@@ -3,7 +3,8 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveQuoteStep, completeQuote, type CompleteQuoteState } from "@/app/boiler-quote/actions";
-import { business } from "@/lib/content/business";
+import { QUOTE_STEP_IDS } from "@/lib/quote/step-ids";
+import { isPostcodeLikelyInCoverage } from "@/lib/content/coverage-postcodes";
 
 type Answers = {
   propertyType: string;
@@ -34,7 +35,8 @@ const EMPTY: Answers = {
 };
 
 const STORAGE_KEY = "marmion-boiler-quote";
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = QUOTE_STEP_IDS.length;
+const PHOTO_STEP_INDEX = QUOTE_STEP_IDS.indexOf("photo");
 
 const inputStyle = {
   borderColor: "var(--border-hairline)",
@@ -44,20 +46,24 @@ const inputStyle = {
 } as const;
 
 function OptionGrid({
+  name,
   options,
   value,
   onChange,
 }: {
+  name: string;
   options: { value: string; label: string }[];
   value: string;
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div role="radiogroup" aria-label={name} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {options.map((opt) => (
         <button
           key={opt.value}
           type="button"
+          role="radio"
+          aria-checked={value === opt.value}
           onClick={() => onChange(opt.value)}
           className="border px-4 py-4 text-left font-mono-label transition-colors"
           style={{
@@ -102,6 +108,7 @@ export function QuoteWizard() {
     return EMPTY;
   });
   const [photo, setPhoto] = useState<File | null>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   const [contactState, contactAction, contactPending] = useActionState<CompleteQuoteState, FormData>(
     completeQuote,
@@ -112,6 +119,13 @@ export function QuoteWizard() {
     if (typeof window === "undefined") return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ quoteId, answers }));
   }, [quoteId, answers]);
+
+  // Move focus to the new step's heading on every transition, and announce
+  // it via the live region below — the panel swap otherwise leaves focus
+  // stranded on the Next/Back button with nothing announced to AT.
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, [step]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: { "image/*": [] },
@@ -126,9 +140,17 @@ export function QuoteWizard() {
   function next() {
     const fd = new FormData();
     fd.set("quoteId", quoteId);
+    fd.set("step", QUOTE_STEP_IDS[step]);
     Object.entries(answers).forEach(([k, v]) => v && fd.set(k, v));
-    if (photo) fd.set("photo", photo);
-    void saveQuoteStep(fd);
+    // Only attach the photo on the step it was captured — otherwise the
+    // same file re-uploads (and re-appends to photo_urls) on every
+    // subsequent step transition.
+    if (step === PHOTO_STEP_INDEX && photo) {
+      fd.set("photo", photo);
+    }
+    void saveQuoteStep(fd).then(() => {
+      if (step === PHOTO_STEP_INDEX) setPhoto(null);
+    });
     setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
   }
 
@@ -136,10 +158,7 @@ export function QuoteWizard() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
-  const coverageMatch =
-    answers.postcode.trim().length > 0
-      ? business.coverage.some((town) => town.toLowerCase().startsWith(answers.postcode.trim().toLowerCase().slice(0, 2)))
-      : true;
+  const coverageMatch = isPostcodeLikelyInCoverage(answers.postcode);
 
   if (contactState.status === "success" && contactState.tiers) {
     return <QuoteResult tiers={contactState.tiers} pdfBase64={contactState.pdfBase64} />;
@@ -147,7 +166,15 @@ export function QuoteWizard() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="h-1 w-full" style={{ background: "var(--paper-raised)", borderRadius: "var(--radius)" }}>
+      <div
+        role="progressbar"
+        aria-valuenow={step + 1}
+        aria-valuemin={1}
+        aria-valuemax={TOTAL_STEPS}
+        aria-label="Quote progress"
+        className="h-1 w-full"
+        style={{ background: "var(--paper-raised)", borderRadius: "var(--radius)" }}
+      >
         <div
           className="h-1 transition-all"
           style={{
@@ -158,13 +185,14 @@ export function QuoteWizard() {
           }}
         />
       </div>
-      <span className="font-mono-label" style={{ color: "var(--steel)" }}>
+      <span className="font-mono-label" style={{ color: "var(--steel)" }} aria-live="polite">
         STEP {step + 1} OF {TOTAL_STEPS}
       </span>
 
       {step === 0 && (
-        <Step title="What kind of property is it?">
+        <Step title="What kind of property is it?" headingRef={headingRef}>
           <OptionGrid
+            name="Property type"
             value={answers.propertyType}
             onChange={(v) => set("propertyType", v)}
             options={[
@@ -193,7 +221,7 @@ export function QuoteWizard() {
       )}
 
       {step === 1 && (
-        <Step title="Bathrooms and shower type">
+        <Step title="Bathrooms and shower type" headingRef={headingRef}>
           <label className="flex flex-col gap-1.5">
             <span className="font-mono-label" style={{ color: "var(--steel)" }}>
               Bathrooms
@@ -210,6 +238,7 @@ export function QuoteWizard() {
           </label>
           <div className="mt-6">
             <OptionGrid
+              name="Shower type"
               value={answers.showerType}
               onChange={(v) => set("showerType", v)}
               options={[
@@ -224,8 +253,9 @@ export function QuoteWizard() {
       )}
 
       {step === 2 && (
-        <Step title="What's your current system?">
+        <Step title="What's your current system?" headingRef={headingRef}>
           <OptionGrid
+            name="Current system"
             value={answers.currentSystem}
             onChange={(v) => set("currentSystem", v)}
             options={[
@@ -241,7 +271,7 @@ export function QuoteWizard() {
       )}
 
       {step === 3 && (
-        <Step title="Where's the boiler now, and where do you want it?">
+        <Step title="Where's the boiler now, and where do you want it?" headingRef={headingRef}>
           <label className="flex flex-col gap-1.5">
             <span className="font-mono-label" style={{ color: "var(--steel)" }}>
               Current location
@@ -270,8 +300,9 @@ export function QuoteWizard() {
       )}
 
       {step === 4 && (
-        <Step title="Fuel type">
+        <Step title="Fuel type" headingRef={headingRef}>
           <OptionGrid
+            name="Fuel type"
             value={answers.fuelType}
             onChange={(v) => set("fuelType", v)}
             options={[
@@ -285,7 +316,7 @@ export function QuoteWizard() {
       )}
 
       {step === 5 && (
-        <Step title="A photo of the boiler and the space around it (optional)">
+        <Step title="A photo of the boiler and the space around it (optional)" headingRef={headingRef}>
           <p className="mb-4 text-sm" style={{ color: "var(--steel)" }}>
             This cuts survey time dramatically — most jobs need one less visit.
           </p>
@@ -307,8 +338,9 @@ export function QuoteWizard() {
       )}
 
       {step === 6 && (
-        <Step title="How soon do you need this done?">
+        <Step title="How soon do you need this done?" headingRef={headingRef}>
           <OptionGrid
+            name="Urgency"
             value={answers.urgency}
             onChange={(v) => set("urgency", v)}
             options={[
@@ -322,7 +354,7 @@ export function QuoteWizard() {
       )}
 
       {step === 7 && (
-        <Step title="Where are you, and how do we reach you?">
+        <Step title="Where are you, and how do we reach you?" headingRef={headingRef}>
           <label className="flex flex-col gap-1.5">
             <span className="font-mono-label" style={{ color: "var(--steel)" }}>
               Postcode
@@ -335,7 +367,7 @@ export function QuoteWizard() {
             />
           </label>
           {!coverageMatch && (
-            <p className="mt-2 text-sm" style={{ color: "var(--amber)" }}>
+            <p className="mt-2 text-sm" style={{ color: "var(--amber-ink)" }} role="status">
               We may be outside easy reach of this postcode — we&apos;ll confirm when we call.
             </p>
           )}
@@ -384,14 +416,24 @@ export function QuoteWizard() {
   );
 }
 
-function Step({ title, children }: { title: string; children: React.ReactNode }) {
+function Step({
+  title,
+  headingRef,
+  children,
+}: {
+  title: string;
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="reveal is-visible flex flex-col gap-2">
-      <h2 className="font-display text-2xl" style={{ color: "var(--ink)" }}>
-        {title}
-      </h2>
+    <fieldset className="reveal is-visible flex flex-col gap-2 border-0 p-0">
+      <legend className="w-full">
+        <h2 ref={headingRef} tabIndex={-1} className="font-display text-2xl outline-none" style={{ color: "var(--ink)" }}>
+          {title}
+        </h2>
+      </legend>
       <div className="mt-4">{children}</div>
-    </div>
+    </fieldset>
   );
 }
 
@@ -417,6 +459,11 @@ function FinalStep({
       {Object.entries(answers).map(([k, v]) => (
         <input key={k} type="hidden" name={k} value={v} />
       ))}
+      {/* Honeypot — visually hidden, not display:none */}
+      <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
+        <label htmlFor="quote-website">Leave this field empty</label>
+        <input id="quote-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
       <h2 className="font-display text-2xl" style={{ color: "var(--ink)" }}>
         Last step — where should we send your price bands?
       </h2>
@@ -458,7 +505,11 @@ function FinalStep({
           {pending ? "Calculating…" : "Get my price bands"}
         </button>
       </div>
-      {errorMessage && <p style={{ color: "var(--amber)" }}>{errorMessage}</p>}
+      {errorMessage && (
+        <p style={{ color: "var(--amber-ink)" }} role="alert">
+          {errorMessage}
+        </p>
+      )}
     </form>
   );
 }

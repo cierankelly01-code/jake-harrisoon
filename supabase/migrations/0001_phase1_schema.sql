@@ -58,7 +58,7 @@ create table if not exists boiler_quotes (
   bathrooms integer,
   shower_type text,
   current_system text check (
-    current_system in ('combi', 'system', 'regular', 'back_boiler', 'electric', 'none', null)
+    current_system in ('combi', 'system', 'regular', 'back_boiler', 'electric', 'none')
   ),
   boiler_location text,
   target_location text,
@@ -90,7 +90,7 @@ create table if not exists tender_enquiries (
   contact_role text,
   sector text,
   contract_type text check (
-    contract_type in ('ppm', 'reactive', 'installation', 'framework', 'one_off', null)
+    contract_type in ('ppm', 'reactive', 'installation', 'framework', 'one_off')
   ),
   site_count integer,
   value_band text,

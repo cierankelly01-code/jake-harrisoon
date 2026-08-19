@@ -3,6 +3,11 @@
  * inventing (§17 of the master build prompt). Never render a guessed
  * value in its place — render this instead, and log the gap in
  * CONTENT_NEEDED.md.
+ *
+ * Always rendered on a fixed dark chip background (not the surrounding
+ * page background) so amber-on-dark contrast (8.17:1) holds regardless
+ * of whether the chip sits on a light or dark section — amber text
+ * directly on --paper only reaches 2.19:1, well below AA.
  */
 export function Placeholder({ label }: { label: string }) {
   return (
@@ -11,6 +16,7 @@ export function Placeholder({ label }: { label: string }) {
       style={{
         borderColor: "var(--amber)",
         color: "var(--amber)",
+        background: "var(--ink)",
         borderRadius: "var(--radius)",
         letterSpacing: "0.08em",
       }}

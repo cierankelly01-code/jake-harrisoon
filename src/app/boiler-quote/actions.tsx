@@ -5,9 +5,10 @@ import { headers } from "next/headers";
 import { quoteStepSchema, quoteContactSchema } from "@/lib/validation/boiler-quote";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { uploadToStorage } from "@/lib/supabase/storage";
-import { isRateLimited } from "@/lib/security/rate-limit";
+import { protectFormSubmission } from "@/lib/security/guard";
 import { sendEmail } from "@/lib/email/send";
-import { business } from "@/lib/content/business";
+import { notifyDirectors } from "@/lib/email/notify-directors";
+import { escapeHtml } from "@/lib/security/escape-html";
 import { calculateQuote, type QuoteInput, type QuoteTier } from "@/lib/quote/pricing";
 import { BoilerQuoteDocument } from "@/lib/pdf/boiler-quote";
 
@@ -19,28 +20,35 @@ import { BoilerQuoteDocument } from "@/lib/pdf/boiler-quote";
  * automation engine (§11) — this action only does the capture half.
  */
 export async function saveQuoteStep(formData: FormData): Promise<{ ok: boolean }> {
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  const guard = await protectFormSubmission(formData, `boiler-quote-step:${ip}`);
+  if (!guard.ok) return { ok: guard.silent };
+
   const parsed = quoteStepSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { ok: false };
 
   const supabase = getSupabaseServiceClient();
   const photoFile = formData.get("photo") as File | null;
-  const photoPath = photoFile && photoFile.size > 0 ? await uploadToStorage("boiler-quote-photos", photoFile, "boiler-quotes") : null;
+  const photoPath =
+    photoFile && photoFile.size > 0 ? await uploadToStorage("boiler-quote-photos", photoFile, "boiler-quotes", "photo") : null;
+
+  const { quoteId, step, ...patch } = parsed.data;
 
   if (!supabase) {
-    console.warn("[STUB] boiler_quotes upsert", { ...parsed.data, photoPath });
+    console.warn("[STUB] boiler_quotes upsert", { quoteId, step, ...patch, photoPath });
     return { ok: true };
   }
 
   const { data: existing } = await supabase
     .from("boiler_quotes")
     .select("photo_urls")
-    .eq("id", parsed.data.quoteId)
+    .eq("id", quoteId)
     .maybeSingle();
 
   const photoUrls = [...(existing?.photo_urls ?? []), ...(photoPath ? [photoPath] : [])];
 
   let leadId: string | null = null;
-  if (parsed.data.phone) {
+  if (patch.phone) {
     const { data: lead } = await supabase
       .from("leads")
       .upsert(
@@ -48,10 +56,10 @@ export async function saveQuoteStep(formData: FormData): Promise<{ ok: boolean }
           division: "domestic",
           type: "boiler_quote",
           name: "Boiler quote — in progress",
-          phone: parsed.data.phone,
-          postcode: parsed.data.postcode ?? null,
+          phone: patch.phone,
+          postcode: patch.postcode ?? null,
           source_page: "/boiler-quote",
-          idempotency_key: `quote:${parsed.data.quoteId}`,
+          idempotency_key: `quote:${quoteId}`,
         },
         { onConflict: "idempotency_key" }
       )
@@ -60,13 +68,12 @@ export async function saveQuoteStep(formData: FormData): Promise<{ ok: boolean }
     leadId = lead?.id ?? null;
   }
 
-  const { quoteId, ...patch } = parsed.data;
   const { error } = await supabase.from("boiler_quotes").upsert(
     {
       id: quoteId,
       ...patch,
       photo_urls: photoUrls,
-      completed_step: Object.keys(patch).at(-1) ?? "unknown",
+      completed_step: step,
       ...(leadId ? { lead_id: leadId } : {}),
     },
     { onConflict: "id" }
@@ -88,8 +95,10 @@ export async function completeQuote(
   formData: FormData
 ): Promise<CompleteQuoteState> {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  if (isRateLimited(`boiler-quote:${ip}`, 5, 60_000)) {
-    return { status: "error", message: "Too many requests. Try again in a minute." };
+  const guard = await protectFormSubmission(formData, `boiler-quote-complete:${ip}`);
+  if (!guard.ok) {
+    if (guard.silent) return { status: "idle" };
+    return { status: "error", message: guard.message };
   }
 
   const contact = quoteContactSchema.safeParse({
@@ -112,7 +121,13 @@ export async function completeQuote(
   };
 
   const tiers = calculateQuote(quoteInput);
-  const recommended = tiers.find((t) => t.tier === "recommended")!;
+  const recommended = tiers.find((t) => t.tier === "recommended");
+  if (!recommended) {
+    // calculateQuote always returns a "recommended" tier for a valid QuoteInput —
+    // this only trips if the pricing config itself was edited incorrectly.
+    console.error("[boiler-quote] pricing config produced no 'recommended' tier");
+    return { status: "error", message: "Something went wrong calculating your quote. Please try again." };
+  }
 
   const supabase = getSupabaseServiceClient();
   let leadId: string | null = null;
@@ -148,7 +163,7 @@ export async function completeQuote(
           quoted_low: recommended.priceLow,
           quoted_high: recommended.priceHigh,
           tier_shown: "recommended",
-          completed_step: "contact",
+          completed_step: "contact_details",
           completed_at: new Date().toISOString(),
         },
         { onConflict: "id" }
@@ -161,16 +176,20 @@ export async function completeQuote(
     <BoilerQuoteDocument tiers={tiers} customerName={contact.data.name} quoteRef={contact.data.quoteId.slice(0, 8).toUpperCase()} />
   );
 
-  await sendEmail({
-    to: [business.emailGeneral ?? "info@marmion.example"],
-    subject: `💷 BOILER QUOTE £${recommended.priceLow.toLocaleString()}–£${recommended.priceHigh.toLocaleString()} — ${contact.data.name} — ${contact.data.postcode}`,
-    html: `<p>${contact.data.name} · ${contact.data.phone} · ${contact.data.email} · ${contact.data.postcode}</p><p>Recommended: ${recommended.boiler}, £${recommended.priceLow}–£${recommended.priceHigh}</p>`,
+  const safeName = escapeHtml(contact.data.name);
+  const safePhone = escapeHtml(contact.data.phone);
+  const safeEmail = escapeHtml(contact.data.email);
+  const safePostcode = escapeHtml(contact.data.postcode);
+
+  await notifyDirectors({
+    subject: `💷 BOILER QUOTE £${recommended.priceLow.toLocaleString()}–£${recommended.priceHigh.toLocaleString()} — ${safeName} — ${safePostcode}`,
+    html: `<p>${safeName} · ${safePhone} · ${safeEmail} · ${safePostcode}</p><p>Recommended: ${escapeHtml(recommended.boiler)}, £${recommended.priceLow}–£${recommended.priceHigh}</p>`,
   });
 
   await sendEmail({
     to: contact.data.email,
     subject: "Your Marmion boiler quote",
-    html: `<p>Hi ${contact.data.name},</p><p>Your indicative quote is attached. We'll be in touch to book a free survey and confirm the final price.</p>`,
+    html: `<p>Hi ${safeName},</p><p>Your indicative quote is attached. We'll be in touch to book a free survey and confirm the final price.</p>`,
     attachments: [{ filename: "marmion-boiler-quote.pdf", content: pdfBuffer }],
   });
 

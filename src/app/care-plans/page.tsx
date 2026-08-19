@@ -6,7 +6,13 @@ export const metadata: Metadata = {
   description: "Annual service, gas safety certificate, breakdown cover and priority callout — one monthly payment.",
 };
 
-export default function CarePlansPage() {
+export default async function CarePlansPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; cancelled?: string }>;
+}) {
+  const { success, cancelled } = await searchParams;
+
   return (
     <div className="mx-auto max-w-6xl px-6" style={{ paddingTop: "var(--space-section-mobile)", paddingBottom: "var(--space-section-mobile)" }}>
       <span className="font-mono-label" style={{ color: "var(--copper)" }}>
@@ -19,6 +25,26 @@ export default function CarePlansPage() {
         Annual service, gas safety certificate, breakdown cover and priority callout — pick the
         level of cover that matches how much you want to think about your boiler.
       </p>
+
+      {success && (
+        <div
+          className="mt-8 border p-4"
+          style={{ borderColor: "var(--flame)", borderRadius: "var(--radius)", background: "var(--paper-raised)", color: "var(--ink)" }}
+          role="status"
+        >
+          You&apos;re signed up. A confirmation is on its way to your email.
+        </div>
+      )}
+      {cancelled && (
+        <div
+          className="mt-8 border p-4"
+          style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)", background: "var(--paper-raised)", color: "var(--ink)" }}
+          role="status"
+        >
+          Checkout was cancelled — no payment was taken. Pick a plan below whenever you&apos;re ready.
+        </div>
+      )}
+
       <div className="mt-10">
         <CarePlansSection />
       </div>

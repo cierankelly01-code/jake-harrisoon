@@ -5,10 +5,10 @@ import { headers } from "next/headers";
 import { tenderEnquirySchema } from "@/lib/validation/tenders";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { uploadToStorage } from "@/lib/supabase/storage";
-import { isHoneypotTripped, verifyTurnstile } from "@/lib/security/turnstile";
-import { isRateLimited } from "@/lib/security/rate-limit";
+import { protectFormSubmission } from "@/lib/security/guard";
+import { escapeHtml } from "@/lib/security/escape-html";
 import { sendEmail } from "@/lib/email/send";
-import { business } from "@/lib/content/business";
+import { notifyDirectors } from "@/lib/email/notify-directors";
 import { CapabilityStatementDocument } from "@/lib/pdf/capability-statement";
 
 export type TenderActionState = {
@@ -20,18 +20,11 @@ export async function submitTenderEnquiry(
   _prev: TenderActionState,
   formData: FormData
 ): Promise<TenderActionState> {
-  if (isHoneypotTripped(formData)) {
-    return { status: "success" };
-  }
-
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  if (isRateLimited(`tenders:${ip}`, 5, 60_000)) {
-    return { status: "error", message: "Too many requests. Try again in a minute." };
-  }
-
-  const turnstileOk = await verifyTurnstile(formData.get("turnstileToken") as string | null);
-  if (!turnstileOk) {
-    return { status: "error", message: "Verification failed. Please try again." };
+  const guard = await protectFormSubmission(formData, `tenders:${ip}`);
+  if (!guard.ok) {
+    if (guard.silent) return { status: "success" };
+    return { status: "error", message: guard.message };
   }
 
   const parsed = tenderEnquirySchema.safeParse({
@@ -59,7 +52,7 @@ export async function submitTenderEnquiry(
   const idempotencyKey = (formData.get("idempotencyKey") as string) || crypto.randomUUID();
 
   const documentFile = formData.get("document") as File | null;
-  const documentPath = documentFile ? await uploadToStorage("tender-documents", documentFile, "tenders") : null;
+  const documentPath = documentFile ? await uploadToStorage("tender-documents", documentFile, "tenders", "document") : null;
 
   const supabase = getSupabaseServiceClient();
   let leadId: string | null = null;
@@ -110,21 +103,29 @@ export async function submitTenderEnquiry(
     console.warn("[STUB] tender enquiry", { ...parsed.data, documentPath, idempotencyKey });
   }
 
+  const safeOrg = escapeHtml(parsed.data.organisation);
+  const safeContact = escapeHtml(parsed.data.contactName);
+  const safeRole = escapeHtml(parsed.data.contactRole || "role not given");
+  const safeSector = escapeHtml(parsed.data.sector || "n/a");
+  const safeEmail = escapeHtml(parsed.data.email);
+  const safePhone = parsed.data.phone ? escapeHtml(parsed.data.phone) : "";
+  const safeMessage = escapeHtml(parsed.data.message || "");
   const deadlineLine = parsed.data.deadline ? ` DEADLINE ${parsed.data.deadline}` : "";
-  await sendEmail({
-    to: [business.emailTenders ?? "tenders@marmion.example", business.emailGeneral ?? "info@marmion.example"],
-    subject: `📋 TENDER — ${parsed.data.organisation} — ${parsed.data.siteCount ?? "?"} sites —${deadlineLine || " no deadline given"}`,
-    html: `<p>New tender enquiry from ${parsed.data.contactName} (${parsed.data.contactRole || "role not given"}) at ${parsed.data.organisation}.</p>
-      <p>Contract type: ${parsed.data.contractType} · Sector: ${parsed.data.sector || "n/a"} · Sites: ${parsed.data.siteCount ?? "n/a"} · Value band: ${parsed.data.valueBand || "n/a"} · Deadline: ${parsed.data.deadline || "n/a"}</p>
-      <p>Contact: ${parsed.data.email} ${parsed.data.phone ? `/ ${parsed.data.phone}` : ""}</p>
-      <p>${parsed.data.message || ""}</p>`,
+
+  await notifyDirectors({
+    preferTenders: true,
+    subject: `📋 TENDER — ${safeOrg} — ${parsed.data.siteCount ?? "?"} sites —${deadlineLine || " no deadline given"}`,
+    html: `<p>New tender enquiry from ${safeContact} (${safeRole}) at ${safeOrg}.</p>
+      <p>Contract type: ${escapeHtml(parsed.data.contractType)} · Sector: ${safeSector} · Sites: ${parsed.data.siteCount ?? "n/a"} · Value band: ${escapeHtml(parsed.data.valueBand || "n/a")} · Deadline: ${escapeHtml(parsed.data.deadline || "n/a")}</p>
+      <p>Contact: ${safeEmail} ${safePhone ? `/ ${safePhone}` : ""}</p>
+      <p>${safeMessage}</p>`,
   });
 
   const pdfBuffer = await renderToBuffer(<CapabilityStatementDocument />);
   await sendEmail({
     to: parsed.data.email,
     subject: "Marmion Building Services — Tender enquiry received",
-    html: `<p>Hi ${parsed.data.contactName},</p><p>Thanks — we've received your enquiry for ${parsed.data.organisation}. We return completed PQQ documentation within 24 hours. Our capability statement is attached in the meantime.</p>`,
+    html: `<p>Hi ${safeContact},</p><p>Thanks — we've received your enquiry for ${safeOrg}. We return completed PQQ documentation within 24 hours. Our capability statement is attached in the meantime.</p>`,
     attachments: [{ filename: "marmion-capability-statement.pdf", content: pdfBuffer }],
   });
 

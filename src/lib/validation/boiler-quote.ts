@@ -1,7 +1,11 @@
 import { z } from "zod";
+import { QUOTE_STEP_IDS } from "@/lib/quote/step-ids";
+
+export { QUOTE_STEP_IDS };
 
 export const quoteStepSchema = z.object({
   quoteId: z.string().uuid(),
+  step: z.enum(QUOTE_STEP_IDS),
   propertyType: z.enum(["flat", "terraced", "semi_detached", "detached", "bungalow"]).optional(),
   bedrooms: z.coerce.number().int().min(1).max(10).optional(),
   bathrooms: z.coerce.number().int().min(1).max(6).optional(),

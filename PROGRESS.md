@@ -47,10 +47,42 @@ Lighthouse/WCAG pass, analytics conversion tracking, `GOOGLE_BUSINESS_PROFILE.md
 
 ## Self-review status
 
-A fresh-eyes review pass (screenshots + independent `code-reviewer` agent against the badman
-rubric) was planned for this session but the Chrome browser extension was not connected, so no
-live screenshots could be captured. Build/lint/type-check are all clean (see below); the visual
-gauntlet is outstanding and should be the first thing run once a browser is available.
+A fresh-eyes **visual** review pass (screenshots + independent reviewer against the badman
+design rubric) was planned for this session but the Chrome browser extension was not connected,
+so no live screenshots could be captured. That's still outstanding and should be the first thing
+run once a browser is available.
+
+A fresh-eyes **code** review did run (independent `code-reviewer` agent, no build context) and
+found real issues, all fixed in this pass:
+- `saveQuoteStep` (boiler-quote step autosave) had no rate limit, honeypot, or server-side file
+  validation — now goes through the same `protectFormSubmission` guard as every other action,
+  and `uploadToStorage` enforces a size/MIME allow-list server-side regardless of what the client
+  claims.
+- The wizard re-uploaded the same photo on every step after it was attached (client-side state
+  bug) — fixed, and `completed_step` is now an explicit value the client sends rather than
+  inferred from which form fields happened to be present.
+- The postcode/coverage check compared a postcode against town *names* and could never match —
+  replaced with a real postcode-area check (`lib/content/coverage-postcodes.ts`).
+- User-supplied text was interpolated into internal/customer email HTML unescaped — added
+  `escapeHtml()` and applied it everywhere a form field reaches an email template.
+- Care plan signup had no honeypot/Turnstile (the other three forms did) — normalised all four
+  actions onto one shared `protectFormSubmission` guard so this can't drift again.
+- Admin notification emails silently fell back to a fake `@marmion.example` address when
+  `business.emailGeneral`/`emailTenders` aren't set yet — replaced with `notifyDirectors()`,
+  which refuses to send (and logs loudly) rather than mailing a domain that doesn't exist.
+- `--steel` (4.27:1) and `--amber` on `--paper` (2.19:1) both failed WCAG AA for text — darkened
+  `--steel`, added an `--amber-ink` token for warning/error text on light surfaces, and gave the
+  `Placeholder` chip a fixed dark background so it's never rendered on an unpredictable surface.
+- Accessibility gaps specific to the boiler-quote wizard (the one flow that hadn't had the same
+  care as the tender/capability forms): added `role="radiogroup"`/`aria-checked` to the option
+  grids, `fieldset`/`legend` structure, `role="progressbar"` on the step indicator, and
+  focus-to-heading on every step change.
+- Fixed a `window.location.href` assignment during render (care-plans redirect) — moved to
+  `useEffect`; and the Stripe success/cancel redirect now actually renders a confirmation/
+  cancellation message instead of being silently dropped.
+
+Full findings (including two accepted-as-is style suggestions) are in the agent's report; nothing
+was silently waved through.
 
 ## Build health
 

@@ -18,8 +18,9 @@
   --flame-deep: #0a2a6b; /* depth, dark sections */
   --flame-glow: #4d8cff; /* hover, focus rings */
   --copper: #a6613c; /* hairlines, rules, fine detail — sparing */
-  --amber: #ff8a00; /* EMERGENCY / EXPIRY ONLY. Never a CTA colour. */
-  --steel: #6b7684; /* secondary text */
+  --amber: #ff8a00; /* EMERGENCY / EXPIRY ONLY. Never a CTA colour. Use only for icons, borders, and text on dark surfaces (8.17:1 on --ink) — on --paper it's only 2.19:1, below AA. */
+  --amber-ink: #a65200; /* amber, darkened for text on --paper (5.08:1 AA) — use this, not --amber, for warning/error text on light surfaces. */
+  --steel: #565f6b; /* secondary text on --paper (5.99:1 AA) */
   --steel-dim: #98a1ad; /* mono labels, tertiary, on dark */
 
   /* --- Semantic surface / text pairs --- */
@@ -77,6 +78,7 @@
   --color-flame-glow: var(--flame-glow);
   --color-copper: var(--copper);
   --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
   --color-steel: var(--steel);
   --color-steel-dim: var(--steel-dim);
 

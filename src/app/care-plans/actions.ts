@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { carePlanSignupSchema } from "@/lib/validation/care-plans";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { getStripeClient } from "@/lib/stripe/server";
-import { isRateLimited } from "@/lib/security/rate-limit";
+import { protectFormSubmission } from "@/lib/security/guard";
 import { CARE_PLANS } from "@/lib/care-plans/tiers";
 
 export type CarePlanActionState = {
@@ -19,8 +19,10 @@ export async function signUpForCarePlan(
 ): Promise<CarePlanActionState> {
   const h = await headers();
   const ip = h.get("x-forwarded-for") ?? "unknown";
-  if (isRateLimited(`care-plans:${ip}`, 5, 60_000)) {
-    return { status: "error", message: "Too many requests. Try again in a minute." };
+  const guard = await protectFormSubmission(formData, `care-plans:${ip}`);
+  if (!guard.ok) {
+    if (guard.silent) return { status: "idle" };
+    return { status: "error", message: guard.message };
   }
 
   const parsed = carePlanSignupSchema.safeParse({
@@ -35,7 +37,13 @@ export async function signUpForCarePlan(
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the form and try again." };
   }
 
-  const plan = CARE_PLANS.find((p) => p.tier === parsed.data.tier)!;
+  const plan = CARE_PLANS.find((p) => p.tier === parsed.data.tier);
+  if (!plan) {
+    // Only reachable if the <select>/hidden tier value diverges from
+    // CARE_PLANS (e.g. a stale client bundle after a tier was renamed).
+    return { status: "error", message: "That plan isn't available right now — please pick again." };
+  }
+
   const supabase = getSupabaseServiceClient();
   let memberId: string | null = null;
 
