@@ -8,11 +8,19 @@
  * page background) so amber-on-dark contrast (8.17:1) holds regardless
  * of whether the chip sits on a light or dark section — amber text
  * directly on --paper only reaches 2.19:1, well below AA.
+ *
+ * `compact` renders a short "TBC" badge instead of repeating
+ * "PLACEHOLDER: LABEL" in full — use it wherever a mono label already
+ * sits right next to the chip (MonoStat, the utility bar, footer NAP
+ * lines) so a stat grid doesn't turn into a wall of wrapped amber text.
+ * The full label is still present as the title/aria-label either way —
+ * nothing here removes the audit trail, it just stops repeating it on
+ * screen where context already supplies it.
  */
-export function Placeholder({ label }: { label: string }) {
+export function Placeholder({ label, compact = false }: { label: string; compact?: boolean }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 border px-2 py-0.5 font-mono-label align-middle"
+      className="inline-flex items-center gap-1.5 whitespace-nowrap border px-2 py-0.5 font-mono-label align-middle"
       style={{
         borderColor: "var(--amber)",
         color: "var(--amber)",
@@ -21,12 +29,13 @@ export function Placeholder({ label }: { label: string }) {
         letterSpacing: "0.08em",
       }}
       role="note"
+      title={`Placeholder: ${label} not yet confirmed`}
       aria-label={`Placeholder: ${label} not yet confirmed`}
     >
-      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" fill="none">
+      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" fill="none" style={{ flexShrink: 0 }}>
         <path d="M5 0L10 10H0L5 0Z" fill="currentColor" fillOpacity="0.9" />
       </svg>
-      PLACEHOLDER: {label}
+      {compact ? "TBC" : `PLACEHOLDER: ${label}`}
     </span>
   );
 }
@@ -35,10 +44,12 @@ export function Placeholder({ label }: { label: string }) {
 export function FactOrPlaceholder({
   value,
   label,
+  compact = false,
 }: {
   value: string | null | undefined;
   label: string;
+  compact?: boolean;
 }) {
   if (value) return <>{value}</>;
-  return <Placeholder label={label} />;
+  return <Placeholder label={label} compact={compact} />;
 }

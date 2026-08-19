@@ -46,17 +46,18 @@ export function Docket({
       }}
     >
       <header
-        className="flex items-center justify-between px-4 py-3 font-mono-label"
+        className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 font-mono-label"
         style={{
           color: isCommercial ? "var(--steel-dim)" : "var(--steel)",
           borderBottom: "1px solid var(--border-hairline)",
         }}
       >
-        <span>
+        <span style={{ whiteSpace: "nowrap" }}>
           {isCommercial ? "CONTRACT REF" : "JOB REF"} · {refCode}
         </span>
         <span
           style={{
+            whiteSpace: "nowrap",
             color: status.value.toLowerCase().includes("ongoing")
               ? "var(--flame-glow)"
               : undefined,

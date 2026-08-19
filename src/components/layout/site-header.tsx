@@ -24,18 +24,18 @@ export function SiteHeader() {
           <span>
             TEL{" "}
             <a href="tel:" className="hover:text-flame-glow" style={{ color: "var(--paper)" }}>
-              <FactOrPlaceholder value={business.phoneMain} label="PHONE MAIN" />
+              <FactOrPlaceholder value={business.phoneMain} label="PHONE MAIN" compact />
             </a>
           </span>
           <span>
             EMAIL{" "}
             <a href="mailto:" className="hover:text-flame-glow" style={{ color: "var(--paper)" }}>
-              <FactOrPlaceholder value={business.emailGeneral} label="EMAIL GENERAL" />
+              <FactOrPlaceholder value={business.emailGeneral} label="EMAIL GENERAL" compact />
             </a>
           </span>
           <span>
             GAS SAFE{" "}
-            <FactOrPlaceholder value={business.gasSafeNumber} label="GAS SAFE NUMBER" />
+            <FactOrPlaceholder value={business.gasSafeNumber} label="GAS SAFE NUMBER" compact />
           </span>
         </div>
         <div className="flex items-center gap-4">

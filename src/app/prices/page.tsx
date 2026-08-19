@@ -43,7 +43,7 @@ export default function PricesPage() {
                 )}
               </td>
               <td className="py-4 text-right font-mono tabular-nums" style={{ color: "var(--ink)" }}>
-                <FactOrPlaceholder value={line.price} label={`PRICE — ${line.job.toUpperCase()}`} />
+                <FactOrPlaceholder value={line.price} label={`PRICE — ${line.job.toUpperCase()}`} compact />
               </td>
             </tr>
           ))}

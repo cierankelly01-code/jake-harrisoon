@@ -25,7 +25,7 @@ export function MonoStat({
         className="font-mono text-2xl tabular-nums"
         style={{ color: strong }}
       >
-        {value ?? <Placeholder label={label} />}
+        {value ?? <Placeholder label={label} compact />}
       </span>
     </div>
   );

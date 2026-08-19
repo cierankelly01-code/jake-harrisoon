@@ -99,13 +99,13 @@ export function SiteFooter() {
       >
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           <span>
-            COMPANY NO. <FactOrPlaceholder value={business.companyNumber} label="COMPANY NUMBER" />
+            COMPANY NO. <FactOrPlaceholder value={business.companyNumber} label="COMPANY NUMBER" compact />
           </span>
           <span>
-            VAT NO. <FactOrPlaceholder value={business.vatNumber} label="VAT NUMBER" />
+            VAT NO. <FactOrPlaceholder value={business.vatNumber} label="VAT NUMBER" compact />
           </span>
           <span>
-            GAS SAFE <FactOrPlaceholder value={business.gasSafeNumber} label="GAS SAFE NUMBER" />
+            GAS SAFE <FactOrPlaceholder value={business.gasSafeNumber} label="GAS SAFE NUMBER" compact />
           </span>
         </div>
         <span>

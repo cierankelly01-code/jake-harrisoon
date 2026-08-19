@@ -12,19 +12,22 @@ import { business } from "@/lib/content/business";
 export function CredibilityBar() {
   const { division } = useDivision();
 
+  // Deliberately not repeating the hero trust strip's Gas Safe no./public
+  // liability/response SLA — these are the *next* four things a buyer
+  // wants to know, not the same four again.
   const items =
     division === "commercial"
       ? [
           { label: "SSIP accredited", value: business.accreditationsHeld.includes("SSIP") ? "Yes" : null },
-          { label: "Public liability", value: business.publicLiability },
           { label: "RAMS", value: "Before every mobilisation" },
-          { label: "Reactive SLA", value: business.responseSla },
+          { label: "Subcontracting", value: "Vetted network only" },
+          { label: "PQQ turnaround", value: "24 hours" },
         ]
       : [
           { label: "Fixed price", value: "Before we start" },
           { label: "Callout fee on quoted work", value: "None" },
           { label: "Arrival windows", value: "Two hours" },
-          { label: "Gas Safe no.", value: business.gasSafeNumber },
+          { label: "Engineers", value: "Not subcontracted" },
         ];
 
   return (
@@ -36,7 +39,7 @@ export function CredibilityBar() {
               {item.label}
             </span>
             <span className="font-mono text-lg tabular-nums" style={{ color: "var(--ink)" }}>
-              <FactOrPlaceholder value={item.value} label={item.label.toUpperCase()} />
+              <FactOrPlaceholder value={item.value} label={item.label.toUpperCase()} compact />
             </span>
           </div>
         ))}

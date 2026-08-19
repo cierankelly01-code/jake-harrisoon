@@ -61,7 +61,7 @@ export function Hero() {
           <DivisionToggle tone={isCommercial ? "dark" : "light"} />
         </div>
 
-        <h1 className="font-display max-w-3xl text-4xl leading-[1.05] md:text-6xl">
+        <h1 className="font-display max-w-5xl text-balance text-4xl leading-[1.08] md:text-5xl 2xl:text-6xl">
           {copy.headline}
         </h1>
 
@@ -111,7 +111,7 @@ function TrustStat({ label, value, dark }: { label: string; value: string | null
         {label}
       </span>
       <span className="font-mono text-sm tabular-nums" style={{ color: dark ? "var(--paper)" : "var(--ink)" }}>
-        <FactOrPlaceholder value={value} label={label.toUpperCase()} />
+        <FactOrPlaceholder value={value} label={label.toUpperCase()} compact />
       </span>
     </div>
   );
