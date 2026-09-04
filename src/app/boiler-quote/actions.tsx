@@ -9,7 +9,7 @@ import { protectFormSubmission } from "@/lib/security/guard";
 import { sendEmail } from "@/lib/email/send";
 import { notifyDirectors } from "@/lib/email/notify-directors";
 import { escapeHtml } from "@/lib/security/escape-html";
-import { calculateQuote, type QuoteInput, type QuoteTier } from "@/lib/quote/pricing";
+import { calculateQuote, deriveMovingLocation, type QuoteInput, type QuoteTier } from "@/lib/quote/pricing";
 import { BoilerQuoteDocument } from "@/lib/pdf/boiler-quote";
 
 /**
@@ -122,20 +122,20 @@ export async function completeQuote(
     return { status: "error", message: contact.error.issues[0]?.message ?? "Check the form and try again." };
   }
 
-  // The target location is optional, and the wizard tells the reader to leave
-  // it blank if the boiler is staying put. A blank field still posts as "", so
-  // comparing the two values raw made `movingLocation` true for every customer
-  // who followed that instruction — applying the relocation uplift (£340–£540
-  // depending on tier) to essentially every quote the site produced.
-  const currentLocation = String(formData.get("boilerLocation") ?? "").trim().toLowerCase();
-  const targetLocation = String(formData.get("targetLocation") ?? "").trim().toLowerCase();
+  // See deriveMovingLocation in lib/quote/pricing.ts for why this isn't a
+  // raw string comparison — a blank `targetLocation` (the wizard tells the
+  // reader to leave it blank if the boiler is staying put) used to compare
+  // as "moving", applying the £340–£540 relocation uplift to essentially
+  // every quote the site produced.
+  const currentLocation = String(formData.get("boilerLocation") ?? "");
+  const targetLocation = String(formData.get("targetLocation") ?? "");
 
   const quoteInput: QuoteInput = {
     propertyType: (formData.get("propertyType") as QuoteInput["propertyType"]) || "semi_detached",
     bedrooms: Number(formData.get("bedrooms")) || 3,
     bathrooms: Number(formData.get("bathrooms")) || 1,
     currentSystem: (formData.get("currentSystem") as QuoteInput["currentSystem"]) || "combi",
-    movingLocation: targetLocation.length > 0 && targetLocation !== currentLocation,
+    movingLocation: deriveMovingLocation(currentLocation, targetLocation),
   };
 
   const tiers = calculateQuote(quoteInput);

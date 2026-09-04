@@ -89,6 +89,21 @@ export const FROM_MONTHLY_GBP = Math.round(
   ((BASE_PRICE_LOW + BASE_PRICE_HIGH) / 2) * TIER_MULTIPLIER.budget / 60
 );
 
+/**
+ * Whether the relocation uplift applies. Pulled out as its own pure
+ * function (rather than left inline in the server action that reads the
+ * form) so it can be unit tested directly: a real pricing bug shipped once
+ * already because a blank `targetLocation` field — which the wizard
+ * explicitly tells the reader to leave blank if the boiler is staying put —
+ * compared equal to nothing and read as "true, it's moving", applying the
+ * uplift to essentially every quote the site produced.
+ */
+export function deriveMovingLocation(currentLocation: string, targetLocation: string): boolean {
+  const current = currentLocation.trim().toLowerCase();
+  const target = targetLocation.trim().toLowerCase();
+  return target.length > 0 && target !== current;
+}
+
 export function calculateQuote(input: QuoteInput): QuoteTier[] {
   const kw = recommendedKw(input.bedrooms, input.bathrooms);
   const complexityUplift = COMPLEXITY_UPLIFT[input.currentSystem] + (input.movingLocation ? MOVING_LOCATION_UPLIFT : 0);
