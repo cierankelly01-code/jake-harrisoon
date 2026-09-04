@@ -28,6 +28,7 @@ const ROUTES: Entry[] = [
   { path: "/", priority: 0.5, changeFrequency: "weekly" },
   // The two live conversion paths — these earn the highest non-home priority.
   { path: "/boiler-quote", priority: 0.9, changeFrequency: "monthly" },
+  { path: "/emergency", priority: 0.9, changeFrequency: "monthly" },
   { path: "/tenders", priority: 0.9, changeFrequency: "monthly" },
   { path: "/capability", priority: 0.8, changeFrequency: "monthly" },
   { path: "/care-plans", priority: 0.8, changeFrequency: "monthly" },

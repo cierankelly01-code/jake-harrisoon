@@ -31,7 +31,9 @@ export type TrackEvent =
   /** FAQ item opened. props: { question } */
   | "faq_open"
   /** Process story advanced to a stage. props: { stage } */
-  | "process_stage";
+  | "process_stage"
+  /** Emergency triage scenario expanded. props: { scenario } */
+  | "emergency_scenario_open";
 
 type Props = Record<string, string | number | boolean | undefined>;
 

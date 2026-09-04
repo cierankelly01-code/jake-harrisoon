@@ -50,6 +50,30 @@ const ALL_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
+/**
+ * Amber, not the nav's usual steel/paper — DESIGN_SYSTEM.md §1 reserves
+ * amber for exactly this: emergency, expiry and unconfirmed-fact contexts,
+ * never a CTA or decorative colour. Domestic-only: a mechanical contractor
+ * mid-tender doesn't need a stopcock diagram, and /tenders and /capability
+ * already carry the commercial "reactive cover" message. Kept out of
+ * NAV_BY_DIVISION's array (and its generic steel-dim/paper colour logic)
+ * because it needs to look categorically different from the rest of the
+ * nav, not just be one more link in the row.
+ */
+function EmergencyNavLink({ pathname }: { pathname: string }) {
+  const active = pathname === "/emergency";
+  return (
+    <Link
+      href="/emergency"
+      aria-current={active ? "page" : undefined}
+      className="font-mono-label link-draw"
+      style={{ color: "var(--amber)" }}
+    >
+      Emergency?
+    </Link>
+  );
+}
+
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -232,6 +256,7 @@ export function SiteHeader() {
                 </Link>
               );
             })}
+            {division === "domestic" && <EmergencyNavLink pathname={pathname} />}
           </div>
 
           <div className="flex items-center gap-3">
@@ -317,6 +342,16 @@ export function SiteHeader() {
                 Menu
               </span>
               <div className="mt-4 flex flex-col">
+                {division === "domestic" && (
+                  <Link
+                    href="/emergency"
+                    aria-current={pathname === "/emergency" ? "page" : undefined}
+                    className="font-display border-b py-4 text-2xl"
+                    style={{ color: "var(--amber)", borderColor: "var(--border-hairline-dark)" }}
+                  >
+                    Emergency?
+                  </Link>
+                )}
                 {ALL_LINKS.map((link) => (
                   <Link
                     key={link.href}
