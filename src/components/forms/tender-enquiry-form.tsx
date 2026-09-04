@@ -2,6 +2,8 @@
 
 import { useActionState, useId, useState } from "react";
 import { submitTenderEnquiry, type TenderActionState } from "@/app/tenders/actions";
+import { TurnstileWidget } from "@/components/security/turnstile-widget";
+import { FileDropField } from "@/components/forms/file-drop-field";
 
 const initialState: TenderActionState = { status: "idle" };
 
@@ -38,13 +40,25 @@ export function TenderEnquiryForm() {
   return (
     <form action={formAction} className="flex flex-col gap-6">
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
-      <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
+      {/* Honeypot — out of the layout entirely so it cannot be seen, tabbed
+          to, or announced. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+          clipPath: "inset(50%)",
+          whiteSpace: "nowrap",
+        }}
+      >
         <label htmlFor="tender-website">Leave this field empty</label>
         <input id="tender-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="font-mono-label mb-2 sm:col-span-2" style={{ color: "var(--copper)" }}>
+        <legend className="font-mono-label mb-2 sm:col-span-2" style={{ color: "var(--copper-bright)" }}>
           Organisation
         </legend>
         <TextField label="Organisation" name="organisation" required />
@@ -56,7 +70,7 @@ export function TenderEnquiryForm() {
       </fieldset>
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="font-mono-label mb-2 sm:col-span-2" style={{ color: "var(--copper)" }}>
+        <legend className="font-mono-label mb-2 sm:col-span-2" style={{ color: "var(--copper-bright)" }}>
           Contract
         </legend>
         <SelectField
@@ -81,21 +95,16 @@ export function TenderEnquiryForm() {
       </fieldset>
 
       <fieldset className="flex flex-col gap-4">
-        <legend className="font-mono-label mb-2" style={{ color: "var(--copper)" }}>
+        <legend className="font-mono-label mb-2" style={{ color: "var(--copper-bright)" }}>
           Documents
         </legend>
-        <label className="flex flex-col gap-1.5">
-          <span className="font-mono-label" style={{ color: "var(--steel-dim)" }}>
-            ITT / specification (PDF, DOCX)
-          </span>
-          <input
-            type="file"
-            name="document"
-            accept=".pdf,.doc,.docx"
-            className="border px-3 py-2 text-sm"
-            style={inputStyle}
-          />
-        </label>
+        <FileDropField
+          label="ITT / specification"
+          name="document"
+          accept=".pdf,.doc,.docx"
+          hint="Drag the tender pack straight in, or click to browse."
+          maxBytes={10 * 1024 * 1024}
+        />
         <label className="flex flex-col gap-1.5">
           <span className="font-mono-label" style={{ color: "var(--steel-dim)" }}>
             Additional detail
@@ -103,6 +112,8 @@ export function TenderEnquiryForm() {
           <textarea name="message" rows={4} className="border px-3 py-2" style={inputStyle} />
         </label>
       </fieldset>
+
+      <TurnstileWidget theme="dark" />
 
       <button
         type="submit"
@@ -146,7 +157,7 @@ function TextField({
         type={type}
         required={required}
         placeholder={placeholder}
-        className="border px-3 py-2"
+        className={`border px-3 py-2 ${type === "date" ? "field-date" : ""}`}
         style={inputStyle}
       />
     </label>
@@ -171,7 +182,13 @@ function SelectField({
         {label}
         {required ? " *" : ""}
       </span>
-      <select id={id} name={name} required={required} className="border px-3 py-2" style={inputStyle}>
+      <select
+        id={id}
+        name={name}
+        required={required}
+        className="field-select border px-3 py-2"
+        style={inputStyle}
+      >
         <option value="">Select…</option>
         {options.map((o) => (
           <option key={o.value} value={o.value}>

@@ -74,6 +74,21 @@ const COMPLEXITY_UPLIFT: Record<CurrentSystem, number> = {
 
 const MOVING_LOCATION_UPLIFT = 400;
 
+/**
+ * The cheapest realistic starting point: a straightforward like-for-like
+ * combi swap on the budget tier, nothing moved. Used to put a real "from"
+ * figure in front of people before the quote gate, rather than making them
+ * answer eight questions to find out whether they are in the right ballpark.
+ * Derived from the same config as the quote itself, so it can never drift
+ * from what the engine actually returns.
+ */
+export const FROM_PRICE_GBP = Math.round(BASE_PRICE_LOW * TIER_MULTIPLIER.budget);
+
+/** Indicative monthly figure over 60 months on the same basis. */
+export const FROM_MONTHLY_GBP = Math.round(
+  ((BASE_PRICE_LOW + BASE_PRICE_HIGH) / 2) * TIER_MULTIPLIER.budget / 60
+);
+
 export function calculateQuote(input: QuoteInput): QuoteTier[] {
   const kw = recommendedKw(input.bedrooms, input.bathrooms);
   const complexityUplift = COMPLEXITY_UPLIFT[input.currentSystem] + (input.movingLocation ? MOVING_LOCATION_UPLIFT : 0);

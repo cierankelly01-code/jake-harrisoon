@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { DocketFallbackArt } from "./docket-fallback-art";
 
 type DocketMeta = { label: string; value: string };
@@ -15,6 +16,12 @@ export type DocketProps = {
   tags?: string[]; // commercial footer row: "RAMS ISSUED · CP12 CURRENT · ..."
   image?: DocketImage | null; // null / omitted => generated fallback art
   className?: string;
+  /** When set, the whole docket becomes one click target. */
+  href?: string;
+  /** Call-to-action text shown in the docket's footer when `href` is set. */
+  action?: string;
+  /** Stagger index for the sitewide reveal system. */
+  revealIndex?: number;
 };
 
 /**
@@ -34,15 +41,19 @@ export function Docket({
   tags,
   image,
   className,
+  href,
+  action,
+  revealIndex = 0,
 }: DocketProps) {
   const isCommercial = variant === "commercial";
   return (
     <article
-      className={`border ${className ?? ""}`}
+      className={`docket reveal reveal--panel relative flex flex-col border ${href ? "docket--linked" : ""} ${className ?? ""}`}
       style={{
         borderColor: "var(--border-hairline)",
         borderRadius: "var(--radius)",
         background: isCommercial ? "var(--slate)" : "var(--surface)",
+        ["--reveal-delay" as string]: String(revealIndex),
       }}
     >
       <header
@@ -52,22 +63,29 @@ export function Docket({
           borderBottom: "1px solid var(--border-hairline)",
         }}
       >
-        <span style={{ whiteSpace: "nowrap" }}>
-          {isCommercial ? "CONTRACT REF" : "JOB REF"} · {refCode}
+        {/* Each atom stays unbroken, but the line may wrap at the separator.
+            Blanket `nowrap` on the whole span pushed narrow dockets ~41px
+            past the viewport at tablet widths. */}
+        <span className="min-w-0">
+          <span style={{ whiteSpace: "nowrap" }}>
+            {isCommercial ? "CONTRACT REF" : "JOB REF"}
+          </span>{" "}
+          · <span style={{ whiteSpace: "nowrap" }}>{refCode}</span>
         </span>
         <span
+          className="min-w-0"
           style={{
-            whiteSpace: "nowrap",
             color: status.value.toLowerCase().includes("ongoing")
               ? "var(--flame-glow)"
               : undefined,
           }}
         >
-          {status.label} {status.value}
+          <span style={{ whiteSpace: "nowrap" }}>{status.label}</span>{" "}
+          <span style={{ whiteSpace: "nowrap" }}>{status.value}</span>
         </span>
       </header>
 
-      <div className="aspect-[16/9] w-full overflow-hidden">
+      <div className="docket__media aspect-[5/2] sm:aspect-[16/9] w-full overflow-hidden">
         {image ? (
           <Image
             src={image.src}
@@ -78,7 +96,7 @@ export function Docket({
             style={{ filter: "saturate(0.92) contrast(1.04)" }}
           />
         ) : (
-          <DocketFallbackArt variant={variant} />
+          <DocketFallbackArt variant={variant} seed={revealIndex} />
         )}
       </div>
 
@@ -90,7 +108,14 @@ export function Docket({
           className="font-display text-lg leading-tight"
           style={{ color: isCommercial ? "var(--paper)" : "var(--ink)" }}
         >
-          {title}
+          {href ? (
+            <Link href={href} className="docket__link">
+              <span className="absolute inset-0" aria-hidden="true" />
+              {title}
+            </Link>
+          ) : (
+            title
+          )}
         </h3>
         <p
           className="mt-2 text-sm"
@@ -101,10 +126,11 @@ export function Docket({
       </div>
 
       <div
-        className="grid gap-3 px-4 py-4"
+        className="grid flex-1 gap-3 px-4 py-4"
         style={{
           gridTemplateColumns: `repeat(${Math.min(meta.length, 4)}, minmax(0, 1fr))`,
-          borderBottom: tags?.length ? "1px solid var(--border-hairline)" : undefined,
+          alignContent: "start",
+          borderBottom: tags?.length || action ? "1px solid var(--border-hairline)" : undefined,
         }}
       >
         {meta.map((m) => (
@@ -129,8 +155,26 @@ export function Docket({
         <div
           className="px-4 py-3 font-mono-label"
           style={{ color: "var(--flame-glow)" }}
+          data-border-bottom={action ? "true" : undefined}
         >
           {tags.join(" · ")}
+        </div>
+      )}
+
+      {action && (
+        <div
+          className="font-mono-label flex items-center justify-between px-4 py-3.5"
+          style={{
+            color: isCommercial ? "var(--paper)" : "var(--ink)",
+            borderTop: tags?.length ? "1px solid var(--border-hairline)" : undefined,
+          }}
+        >
+          {action}
+          <span className="docket__arrow" aria-hidden="true">
+            <svg width="16" height="10" viewBox="0 0 16 10" fill="none">
+              <path d="M0 5h14M10 1l4 4-4 4" stroke="currentColor" strokeWidth="1.4" />
+            </svg>
+          </span>
         </div>
       )}
     </article>

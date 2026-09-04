@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { business } from "@/lib/content/business";
-import { FactOrPlaceholder } from "@/components/ui/placeholder";
+import { PlaceholderMarker } from "@/components/ui/placeholder";
 import { MonoStat } from "@/components/ui/mono-stat";
 import { CapabilityDownloadForm } from "@/components/forms/capability-download-form";
 
@@ -52,25 +53,43 @@ const SECTORS = [
   "Letting agents",
 ];
 
-const QUALIFICATIONS = ["Gas Safe commercial", "F-Gas", "G3 unvented", "L8 Legionella", "CSCS"];
+/**
+ * These were previously headed "Qualifications held" — which was a false
+ * claim, because `business.accreditationsHeld` is empty and none of them
+ * have been evidenced yet. They are the competencies the business is working
+ * towards, and they are labelled as exactly that. Anything genuinely held
+ * renders from `business.accreditationsHeld`, with its registration number.
+ */
+const QUALIFICATIONS_TARGETED = [
+  "Gas Safe commercial",
+  "F-Gas",
+  "G3 unvented",
+  "L8 Legionella",
+  "CSCS",
+];
+
+/** Direct contact routes, rendered only where a value actually exists. */
+const DIRECT_CONTACTS = [
+  { label: "Tenders email:", value: business.emailTenders, marker: "EMAIL TENDERS" },
+  { label: "General email:", value: business.emailGeneral, marker: "EMAIL GENERAL" },
+  { label: "Telephone:", value: business.phoneMain, marker: "PHONE MAIN" },
+] as const;
 
 export default function CapabilityPage() {
   return (
     <div style={{ background: "var(--ink)", color: "var(--paper)" }}>
       <section
-        className="mx-auto max-w-6xl px-6"
-        style={{ paddingTop: "var(--space-section-mobile)", paddingBottom: "var(--space-section-mobile)" }}
+        className="mx-auto max-w-[100rem] px-6"
+        style={{ paddingTop: "var(--space-section-tight)", paddingBottom: "var(--space-section)" }}
       >
-        <span className="font-mono-label" style={{ color: "var(--copper)" }}>
-          Tender weapon
+        <span className="font-mono-label" style={{ color: "var(--copper-bright)" }}>
+          For procurement
         </span>
-        <h1 className="font-display mt-3 text-4xl leading-tight md:text-5xl">
-          Capability statement
-        </h1>
+        <h1 className="font-display font-display-xl mt-5 text-4xl">Capability statement</h1>
         <p className="mt-4 max-w-2xl text-lg" style={{ color: "var(--steel-dim)" }}>
           Everything a procurement lead or main contractor needs to put {business.tradingName} on
           a tender list — services, accreditations, insurance schedule, coverage and response
-          SLAs. Download it instantly below, or send us the ITT and we return completed PQQ
+          SLAs. Two fields and the PDF downloads on the spot, or send us the ITT and we return completed PQQ
           documentation within 24 hours.
         </p>
 
@@ -148,12 +167,24 @@ export default function CapabilityPage() {
 
             <div>
               <h2 className="font-mono-label mb-4" style={{ color: "var(--steel-dim)" }}>
-                Qualifications held
+                Accreditations
               </h2>
-              <p style={{ color: "var(--steel-dim)" }}>
-                {QUALIFICATIONS.join(" · ")} — registration numbers confirmed on request pending
-                completion of <FactOrPlaceholder value={null} label="ACCREDITATION_ROADMAP.md" />.
-              </p>
+              {business.accreditationsHeld.length > 0 ? (
+                <p style={{ color: "var(--steel-dim)" }}>
+                  Held: {business.accreditationsHeld.join(" · ")}. Registration numbers and
+                  certificates issued with the PQQ pack.
+                </p>
+              ) : (
+                <p style={{ color: "var(--steel-dim)" }}>
+                  Accreditation is in progress. Currently working towards:{" "}
+                  <span style={{ color: "var(--paper)" }}>
+                    {QUALIFICATIONS_TARGETED.join(" · ")}
+                  </span>
+                  . None are held yet — we would rather tell you here than have you find it at PQQ
+                  stage — and each appears on this page with its registration number on the day it
+                  is awarded.
+                </p>
+              )}
             </div>
 
             <div>
@@ -161,9 +192,9 @@ export default function CapabilityPage() {
                 Health &amp; safety
               </h2>
               <p style={{ color: "var(--steel-dim)" }}>
-                RAMS issued before every mobilisation. Full health &amp; safety, environmental and
-                quality management policies are published on /compliance (in progress — see
-                CONTENT_NEEDED.md).
+                RAMS issued to your site team before every mobilisation, not just the first. Written
+                health &amp; safety, environmental and quality management policies are issued with
+                the PQQ pack on request.
               </p>
             </div>
 
@@ -178,11 +209,33 @@ export default function CapabilityPage() {
               <h2 className="font-mono-label mb-4" style={{ color: "var(--steel-dim)" }}>
                 Contact
               </h2>
-              <p style={{ color: "var(--steel-dim)" }}>
-                Tenders: <FactOrPlaceholder value={business.emailTenders} label="EMAIL TENDERS" /> ·
-                General: <FactOrPlaceholder value={business.emailGeneral} label="EMAIL GENERAL" /> ·
-                Tel: <FactOrPlaceholder value={business.phoneMain} label="PHONE MAIN" />
+              {/* Direct contact details are unconfirmed, so this leads with the
+                  route that actually works today — the tender enquiry form,
+                  which takes documents and reaches the directors — rather than
+                  leaving a procurement lead with three placeholder chips and
+                  no way to reach anyone. */}
+              <p className="max-w-[60ch]" style={{ color: "var(--steel-dim)" }}>
+                Send the ITT through the{" "}
+                <Link href="/tenders" className="link-draw" style={{ color: "var(--paper)" }}>
+                  tender enquiry form
+                </Link>
+                , which accepts drawings and specifications and goes straight to both directors. You
+                get completed PQQ documentation back within 24 hours and a named point of contact
+                from that moment on.
               </p>
+              {DIRECT_CONTACTS.some((c) => c.value) ? (
+                <dl className="mt-5 flex flex-col gap-2 text-sm">
+                  {DIRECT_CONTACTS.filter((c) => c.value).map((c) => (
+                    <div key={c.marker} className="flex flex-wrap gap-2">
+                      <dt style={{ color: "var(--steel-dim)" }}>{c.label}</dt>
+                      <dd style={{ color: "var(--paper)" }}>{c.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+              {DIRECT_CONTACTS.filter((c) => !c.value).map((c) => (
+                <PlaceholderMarker key={c.marker} label={c.marker} />
+              ))}
             </div>
           </div>
 

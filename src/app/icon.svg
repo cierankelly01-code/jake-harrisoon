@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Marmion">
+  <!--
+    The three-blade flame mark — same geometry as the flame in
+    src/components/ui/docket-fallback-art.tsx, flanked by two shorter
+    blades so it still reads as a flame at 16px rather than a leaf.
+    Blue, not orange: in this design system blue is correct combustion.
+    Hex is hardcoded because an icon file has no stylesheet context —
+    #0b0e14 is --ink and #1f5fe0 is --flame.
+  -->
+  <rect width="64" height="64" fill="#0b0e14"/>
+  <g fill="#1f5fe0">
+    <path opacity="0.55" transform="translate(17,44) scale(0.34)" d="M0 -34C6 -18 16 -10 16 6C16 22 4 32 0 34C-4 32 -16 22 -16 6C-16 -10 -6 -18 0 -34Z"/>
+    <path opacity="0.55" transform="translate(47,44) scale(0.34)" d="M0 -34C6 -18 16 -10 16 6C16 22 4 32 0 34C-4 32 -16 22 -16 6C-16 -10 -6 -18 0 -34Z"/>
+    <path transform="translate(32,38) scale(0.55)" d="M0 -34C6 -18 16 -10 16 6C16 22 4 32 0 34C-4 32 -16 22 -16 6C-16 -10 -6 -18 0 -34Z"/>
+  </g>
+</svg>

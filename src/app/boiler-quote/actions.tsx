@@ -20,8 +20,18 @@ import { BoilerQuoteDocument } from "@/lib/pdf/boiler-quote";
  * automation engine (§11) — this action only does the capture half.
  */
 export async function saveQuoteStep(formData: FormData): Promise<{ ok: boolean }> {
-  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  const guard = await protectFormSubmission(formData, `boiler-quote-step:${ip}`);
+  // Keyed on the quote, not the IP: the wizard autosaves nine or ten times in
+  // a single sitting, so an IP-keyed 5-per-minute limit throttled one honest
+  // visitor partway through — and behind CGNAT or an office NAT it throttled
+  // whoever happened to be second. The limit is generous enough for the whole
+  // wizard and still bounded per quote id.
+  const rateLimitScope = String(formData.get("quoteId") ?? "").slice(0, 64) || "unknown";
+  const guard = await protectFormSubmission(formData, `boiler-quote-step:${rateLimitScope}`, {
+    limit: 30,
+    // Intermediate autosaves carry no Turnstile token by design; the final
+    // submit in `completeQuote` is the one that is verified.
+    skipTurnstile: true,
+  });
   if (!guard.ok) return { ok: guard.silent };
 
   const parsed = quoteStepSchema.safeParse(Object.fromEntries(formData.entries()));
@@ -112,12 +122,20 @@ export async function completeQuote(
     return { status: "error", message: contact.error.issues[0]?.message ?? "Check the form and try again." };
   }
 
+  // The target location is optional, and the wizard tells the reader to leave
+  // it blank if the boiler is staying put. A blank field still posts as "", so
+  // comparing the two values raw made `movingLocation` true for every customer
+  // who followed that instruction — applying the relocation uplift (£340–£540
+  // depending on tier) to essentially every quote the site produced.
+  const currentLocation = String(formData.get("boilerLocation") ?? "").trim().toLowerCase();
+  const targetLocation = String(formData.get("targetLocation") ?? "").trim().toLowerCase();
+
   const quoteInput: QuoteInput = {
     propertyType: (formData.get("propertyType") as QuoteInput["propertyType"]) || "semi_detached",
     bedrooms: Number(formData.get("bedrooms")) || 3,
     bathrooms: Number(formData.get("bathrooms")) || 1,
     currentSystem: (formData.get("currentSystem") as QuoteInput["currentSystem"]) || "combi",
-    movingLocation: formData.get("boilerLocation") !== formData.get("targetLocation"),
+    movingLocation: targetLocation.length > 0 && targetLocation !== currentLocation,
   };
 
   const tiers = calculateQuote(quoteInput);

@@ -2,22 +2,31 @@
 
 /* ==========================================================================
    MARMION DESIGN TOKENS — "The Flame Test"
-   Blue = correct combustion = done properly. Amber = incomplete combustion
-   = danger, reserved exclusively for emergency / urgency / expiry contexts.
-   Never use amber as a CTA or decorative colour. See /about and
-   BRAND_GUIDELINES.md for the full rationale.
+   Art direction: NEO-INDUSTRIAL. Archivo Expanded display, Instrument Sans
+   body, Martian Mono for specs. Radius 2px maximum. Exposed structure,
+   hairline copper rules, spec-sheet metadata, zero decorative shadows.
+
+   Colour rule: blue = correct combustion = done properly. Amber = incomplete
+   combustion = danger, reserved exclusively for emergency / urgency / expiry
+   / unconfirmed-fact contexts. Never use amber as a CTA or decorative colour.
    ========================================================================== */
 
 :root {
+  color-scheme: light;
+
   /* --- Palette --- */
   --ink: #0b0e14; /* boiler casing — commercial base */
   --slate: #161c26; /* elevated dark surface */
+  --slate-deep: #10151d; /* between ink and slate, for banding */
   --paper: #f7f6f3; /* body background — warm neutral, not cream */
   --paper-raised: #efeee9; /* subtle surface shift on paper */
   --flame: #1f5fe0; /* primary — clean combustion blue */
   --flame-deep: #0a2a6b; /* depth, dark sections */
-  --flame-glow: #4d8cff; /* hover, focus rings */
-  --copper: #a6613c; /* hairlines, rules, fine detail — sparing */
+  --flame-glow: #4d8cff; /* hover, focus rings. On --ink it is 6.2:1, but on --flame-deep only 4.18:1 — use --flame-pale for text there. */
+  --flame-pale: #8fb6ff; /* blue text on --flame-deep (6.7:1 AA) */
+  --copper: #a6613c; /* hairlines, rules, fine detail — sparing. NOT for text on --paper: it reaches only 4.46:1 there, just under AA. */
+  --copper-ink: #99552f; /* copper, darkened for text on --paper (5.26:1 AA) — use this for eyebrow labels and any copper text on light surfaces. */
+  --copper-bright: #c87a4e; /* copper for text on --ink (6.9:1) — use this on dark surfaces. */
   --amber: #ff8a00; /* EMERGENCY / EXPIRY ONLY. Never a CTA colour. Use only for icons, borders, and text on dark surfaces (8.17:1 on --ink) — on --paper it's only 2.19:1, below AA. */
   --amber-ink: #a65200; /* amber, darkened for text on --paper (5.08:1 AA) — use this, not --amber, for warning/error text on light surfaces. */
   --steel: #565f6b; /* secondary text on --paper (5.99:1 AA) */
@@ -35,25 +44,42 @@
   --border-hairline: color-mix(in srgb, var(--copper) 55%, transparent);
   --border-hairline-dark: color-mix(in srgb, var(--copper) 70%, transparent);
 
-  /* --- Type scale (px, converted to rem at 16px root) --- */
+  /* --- Fluid type scale. clamp() everywhere: no font-size media queries.
+         Body sizes stay fixed; display sizes scale with the viewport. --- */
   --text-xs: 0.75rem; /* 12 */
   --text-sm: 0.875rem; /* 14 */
   --text-base: 1rem; /* 16 */
   --text-lg: 1.125rem; /* 18 */
-  --text-xl: 1.375rem; /* 22 */
-  --text-2xl: 1.75rem; /* 28 */
-  --text-3xl: 2.375rem; /* 38 */
-  --text-4xl: 3.25rem; /* 52 */
-  --text-5xl: 4.5rem; /* 72 */
-  --text-6xl: 6rem; /* 96 */
+  --text-xl: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem); /* 20 → 24 */
+  --text-2xl: clamp(1.5rem, 1.25rem + 1.2vw, 2.125rem); /* 24 → 34 */
+  --text-3xl: clamp(1.875rem, 1.4rem + 2.2vw, 3rem); /* 30 → 48 */
+  --text-4xl: clamp(2.25rem, 1.4rem + 3.9vw, 4.25rem); /* 36 → 68 */
+  --text-5xl: clamp(2.75rem, 1.35rem + 6.4vw, 6rem); /* 44 → 96 */
+  /* Hero-only step. Starts at 34px so the longest headline clears the fold
+     with its CTA on a 375×812 phone, then catches --text-5xl by ~900px. */
+  --text-hero: clamp(2.125rem, 0.65rem + 6.8vw, 6rem); /* 34 → 96 */
+  --text-6xl: clamp(3.25rem, 1.1rem + 9.8vw, 8.5rem); /* 52 → 136 */
+
+  /* Current-surface rule colour. Components on a dark surface override it
+     inline (see hero.tsx); declaring the default here means any consumer of
+     `var(--rule)` renders a border instead of nothing. */
+  --rule: var(--border-hairline);
 
   /* --- Font variation --- */
   --font-archivo-wdth-expanded: 125; /* max end of Archivo's wdth axis */
-  --font-archivo-wdth-normal: 100;
 
-  /* --- Spacing --- */
-  --space-section-desktop: 8rem; /* 128px */
+  /* --- Spacing. Fluid section rhythm — 72px phone → 160px wide desktop.
+         `--space-section` is the only section-padding token; the two named
+         endpoints stay for anything that needs a hard value. --- */
   --space-section-mobile: 4.5rem; /* 72px */
+  --space-section-desktop: 10rem; /* 160px */
+  --space-section: clamp(3.5rem, 2rem + 5.2vw, 8rem);
+  --space-section-tight: clamp(3rem, 1.9rem + 3.4vw, 6rem);
+  /* Deliberately compressed rhythm. Every homepage section used to run the
+     same --space-section top and bottom, which is what made the page read as
+     a metronome: eleven bands all 850-1,010px tall. Dense sections give the
+     page somewhere to speed up, so the tall ones read as a choice. */
+  --space-section-dense: clamp(2.25rem, 1.5rem + 2.6vw, 4rem);
   --space-gutter: 1.5rem;
 
   /* --- Radius: 2px maximum, anywhere --- */
@@ -65,24 +91,35 @@
   --duration-reveal: 500ms;
   --duration-breathe: 8000ms;
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Neo-Industrial motion is mechanical: stepped and linear, not springy.
+     Use --ease-mech for anything that should read as machinery. */
+  --ease-mech: cubic-bezier(0.2, 0, 0, 1);
+
+  /* --- Layout --- */
+  --header-height: 4.25rem; /* sticky nav, used for scroll-margin offsets */
 }
 
 @theme inline {
   --color-ink: var(--ink);
   --color-slate: var(--slate);
+  --color-slate-deep: var(--slate-deep);
   --color-paper: var(--paper);
   --color-paper-raised: var(--paper-raised);
   --color-flame: var(--flame);
   --color-flame-deep: var(--flame-deep);
   --color-flame-glow: var(--flame-glow);
+  --color-flame-pale: var(--flame-pale);
   --color-copper: var(--copper);
+  --color-copper-ink: var(--copper-ink);
+  --color-copper-bright: var(--copper-bright);
   --color-amber: var(--amber);
   --color-amber-ink: var(--amber-ink);
   --color-steel: var(--steel);
   --color-steel-dim: var(--steel-dim);
 
-  --font-display: var(--font-archivo), "Arial Narrow", sans-serif;
+  --font-display: var(--font-archivo), "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-body: var(--font-instrument-sans), system-ui, sans-serif;
   --font-mono: var(--font-martian-mono), ui-monospace, monospace;
 
@@ -102,10 +139,14 @@
 
 * {
   border-color: var(--border-hairline);
+  min-width: 0; /* flex/grid children never overflow on long unbroken words */
 }
 
 html {
   scroll-behavior: smooth;
+  /* Anchor targets clear the sticky header. */
+  scroll-padding-top: calc(var(--header-height) + 1rem);
+  -webkit-text-size-adjust: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -128,16 +169,33 @@ body {
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.6;
+  text-wrap: pretty; /* no widows/orphans in body copy */
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent; /* we supply our own :active states */
+  /* Real content breaks layouts: a long postcode, an unbroken German
+     compound, a 90-character job title in a card. `anywhere` (rather than
+     `break-word`) is deliberate — it is the only value that also shrinks an
+     element's min-content width, which is what stops a long word forcing a
+     grid or flex track wider than the viewport. Verified at 320px. */
+  overflow-wrap: anywhere;
 }
 
-/* Custom selection colour — expensive detail #1 */
+/* Display type breaks badly mid-word, so give it hyphenation to break at
+   instead, and only let it hard-break when there is genuinely no option. */
+.font-display,
+h1,
+h2,
+h3 {
+  hyphens: auto;
+}
+
+/* Expensive detail #1 — custom selection colour */
 ::selection {
   background: var(--flame);
   color: var(--paper);
 }
 
-/* Styled scrollbar — expensive detail #2 */
+/* Expensive detail #2 — styled scrollbar */
 html {
   scrollbar-color: var(--copper) transparent;
   scrollbar-width: thin;
@@ -160,11 +218,22 @@ html {
   outline-offset: 2px;
 }
 
+/* --------------------------------------------------------------------------
+   Typography primitives
+   -------------------------------------------------------------------------- */
+
 .font-display {
   font-family: var(--font-display);
   font-variation-settings: "wdth" var(--font-archivo-wdth-expanded);
   letter-spacing: -0.03em;
   font-weight: 700;
+  text-wrap: balance;
+}
+
+/* Display type at hero scale needs tighter tracking still — optical, not linear. */
+.font-display-xl {
+  letter-spacing: -0.04em;
+  line-height: 0.94;
 }
 
 .font-mono-label {
@@ -173,29 +242,490 @@ html {
   text-transform: uppercase;
   font-size: var(--text-xs);
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  /* Opt out of the body's `overflow-wrap: anywhere`. These labels are short
+     uppercase words in a wide mono face with heavy tracking, so in a tight
+     container `anywhere` was breaking "TEL" into "TE / L" and "EMAIL" into
+     "EMAI / L" rather than wrapping between words. */
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* Numbers never jiggle: prices, counters, specs, timers. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .hairline {
   border-top: 1px solid var(--border-hairline);
 }
 
-/* Reveal-on-scroll primitive — see lib/reveal.ts. Elements start hidden only
-   when JS has confirmed IntersectionObserver support, so content is never
-   trapped invisible without JS. */
+/* --------------------------------------------------------------------------
+   Expensive detail #3 — section index numbers / running section headers.
+   Recipe 6 wants exposed structure: every section announces its own index
+   like a drawing sheet number.
+   -------------------------------------------------------------------------- */
+.section-index {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.section-index::before {
+  content: attr(data-index);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  /* Inherits the label's own colour so the index never drops below the
+     contrast of the text it sits beside. */
+  color: currentColor;
+  opacity: 0.65;
+}
+
+/* --------------------------------------------------------------------------
+   Expensive detail #4 — link underline that draws left-to-right.
+   -------------------------------------------------------------------------- */
+.link-draw {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size var(--duration-transition) var(--ease-mech);
+  padding-bottom: 1px;
+}
+@media (hover: hover) {
+  .link-draw:hover {
+    background-size: 100% 1px;
+  }
+}
+.link-draw:focus-visible {
+  background-size: 100% 1px;
+}
+
+/* --------------------------------------------------------------------------
+   Expensive detail #5 — grain. 3% SVG turbulence over dark sections only,
+   so flat ink fields read as a printed surface rather than a CSS colour.
+   -------------------------------------------------------------------------- */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --------------------------------------------------------------------------
+   Expensive detail #6 — blueprint hairline grid, used once, on the hero.
+   -------------------------------------------------------------------------- */
+.blueprint-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--copper) 16%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--copper) 16%, transparent) 1px, transparent 1px);
+  background-size: 88px 88px;
+}
+
+/* --------------------------------------------------------------------------
+   Form controls. Native select / date / file chrome was rendering OS-default
+   inside fully art-directed dark forms — three grey browser widgets in the
+   middle of the highest-value conversion surface on the site.
+   -------------------------------------------------------------------------- */
+.field-select {
+  appearance: none;
+  -webkit-appearance: none;
+  /* Chevron drawn in the copper accent, sized to the mono label scale. */
+  background-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 100%
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23C87F4A' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position:
+    center,
+    right 0.85rem center;
+  padding-right: 2.5rem;
+}
+/* The picker glyph is a UA shadow element; recolouring it is the only way to
+   stop a black calendar icon sitting on a near-black field. */
+.field-date::-webkit-calendar-picker-indicator {
+  filter: invert(62%) sepia(38%) saturate(720%) hue-rotate(340deg) brightness(92%);
+  cursor: pointer;
+  opacity: 0.9;
+}
+.field-date::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+.field-drop {
+  border: 1px dashed var(--border-hairline-dark);
+  border-radius: var(--radius);
+  transition:
+    border-color var(--duration-transition) var(--ease-mech),
+    background-color var(--duration-transition) var(--ease-mech);
+}
+.field-drop[data-dragging="true"] {
+  border-color: var(--flame-glow);
+  border-style: solid;
+  background: color-mix(in srgb, var(--flame) 10%, transparent);
+}
+.field-drop:focus-within {
+  border-color: var(--copper-bright);
+}
+
+/* --------------------------------------------------------------------------
+   Reveal system (the sitewide workhorse) — see lib/reveal.ts.
+   Elements start hidden only when JS has confirmed IntersectionObserver
+   support, so content is never trapped invisible without JS.
+   Neo-Industrial variant: elements slide up mechanically with a hairline
+   wipe, no fade-and-float mush.
+   -------------------------------------------------------------------------- */
 .js .reveal {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(14px);
 }
 .js .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
   transition:
-    opacity var(--duration-reveal) var(--ease-enter),
-    transform var(--duration-reveal) var(--ease-enter);
+    opacity var(--duration-reveal) var(--ease-mech),
+    transform var(--duration-reveal) var(--ease-mech);
+  transition-delay: calc(var(--reveal-delay, 0) * 80ms);
+}
+/* Motion hierarchy. Without this every revealed thing on the site — a section
+   heading, a pricing card, a footer link — arrived identically, which is the
+   most recognisable tell of a generated page. Leads travel further and settle
+   slower than the body elements that follow them. */
+.js .reveal--lead {
+  transform: translateY(26px);
+}
+.js .reveal--lead.is-visible {
+  transition-duration: calc(var(--duration-reveal) * 1.35);
+}
+/* Panels that carry a decision (pricing tiers, dockets) get a weightier
+   entrance than prose: a touch of scale, and no stagger delay inherited from
+   whatever happened to render above them. */
+.js .reveal--panel {
+  transform: translateY(18px) scale(0.985);
+  transform-origin: bottom center;
+}
+.js .reveal--panel.is-visible {
+  transform: translateY(0) scale(1);
+  transition-duration: calc(var(--duration-reveal) * 1.2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal--lead,
+  .js .reveal--panel {
+    transform: none;
+  }
+}
+
+/* Clip-wipe variant for panels and images — the mechanical alternative to a fade. */
+.js .reveal-wipe {
+  clip-path: inset(0 100% 0 0);
+}
+.js .reveal-wipe.is-visible {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--duration-reveal) var(--ease-mech);
+  transition-delay: calc(var(--reveal-delay, 0) * 80ms);
 }
 @media (prefers-reduced-motion: reduce) {
   .js .reveal {
     opacity: 1;
     transform: none;
+  }
+  .js .reveal-wipe {
+    clip-path: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Marquee (announcement ticker). Track is duplicated in markup; the clone
+   carries aria-hidden. Pauses on hover and on keyboard focus within.
+   -------------------------------------------------------------------------- */
+@keyframes marquee-track {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  overflow: hidden;
+}
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee-track var(--marquee-duration, 40s) linear infinite;
+}
+.marquee:hover .marquee__track,
+.marquee:focus-within .marquee__track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track {
+    animation: none;
+  }
+  .marquee {
+    overflow-x: auto;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Scroll-driven reading progress — zero JS where supported.
+   -------------------------------------------------------------------------- */
+@supports (animation-timeline: scroll()) {
+  @keyframes progress-grow {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .scroll-progress {
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: progress-grow linear;
+    animation-timeline: scroll(root block);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Accordion height animation without JS measurement.
+   -------------------------------------------------------------------------- */
+.accordion-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-transition) var(--ease-mech);
+}
+.accordion-panel > * {
+  overflow: hidden;
+}
+details[open] > .accordion-panel,
+.accordion-panel[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+/* Hide the native disclosure marker without killing the semantics. */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons — one place, so hover/active/disabled are never dead anywhere.
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px; /* touch target floor */
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  transition:
+    background-color var(--duration-micro) var(--ease-mech),
+    border-color var(--duration-micro) var(--ease-mech),
+    color var(--duration-micro) var(--ease-mech),
+    transform var(--duration-micro) var(--ease-mech);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn--primary {
+  background: var(--flame);
+  color: var(--paper);
+}
+.btn--secondary {
+  border-color: var(--border-hairline);
+  color: var(--ink);
+  background: transparent;
+}
+.btn--secondary-dark {
+  border-color: var(--border-hairline-dark);
+  color: var(--paper);
+  background: transparent;
+}
+@media (hover: hover) {
+  .btn--primary:hover {
+    background: var(--flame-glow);
+    color: var(--ink);
+  }
+  .btn--secondary:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  .btn--secondary-dark:hover {
+    background: var(--paper);
+    border-color: var(--paper);
+    color: var(--ink);
+  }
+}
+.btn[aria-disabled="true"] {
+  opacity: 0.55;
+}
+
+/* The hero's proof column only takes a left rule once it sits beside the
+   headline cell; stacked on a phone that border would float unattached. */
+@media (min-width: 1024px) {
+  .hero-proof {
+    border-left: 1px solid var(--rule);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The Docket — the site's signature card. No dead hovers: the whole card is
+   one target, the border lifts to the brand blue, and the schematic art
+   inside creeps forward behind its own clipping frame.
+   -------------------------------------------------------------------------- */
+.docket {
+  transition:
+    border-color var(--duration-transition) var(--ease-mech),
+    background-color var(--duration-transition) var(--ease-mech);
+}
+.docket__media > * {
+  transition: transform 600ms var(--ease-mech);
+}
+.docket__link {
+  color: inherit;
+}
+.docket__link:focus-visible {
+  outline: none;
+}
+.docket--linked:focus-within {
+  border-color: var(--flame-glow);
+  outline: 2px solid var(--flame-glow);
+  outline-offset: 2px;
+}
+.docket__arrow {
+  display: inline-flex;
+  color: var(--flame);
+  transition: transform var(--duration-transition) var(--ease-mech);
+}
+@media (hover: hover) {
+  .docket--linked:hover {
+    border-color: var(--flame);
+  }
+  .docket--linked:hover .docket__media > * {
+    transform: scale(1.04);
+  }
+  .docket--linked:hover .docket__arrow {
+    transform: translateX(5px);
+  }
+}
+
+/* Division toggle — 44px touch target, and no dead hover on the inactive side. */
+.division-option {
+  min-height: 40px;
+  transition:
+    background-color var(--duration-micro) var(--ease-mech),
+    color var(--duration-micro) var(--ease-mech);
+}
+@media (hover: hover) {
+  .division-option[aria-pressed="false"]:hover {
+    background: color-mix(in srgb, var(--flame) 18%, transparent);
+    color: var(--paper);
+  }
+}
+
+/* A landscape phone is wide enough to match `md` but only ~375px tall, where
+   a second sticky bar is a luxury the viewport cannot afford. */
+@media (max-height: 500px) {
+  .utility-strip {
+    display: none !important;
+  }
+}
+
+/* The sticky call bar is fixed over the bottom of the page on phones, so the
+   page needs to end above it or it permanently covers the last few lines of
+   the footer, including the statutory disclosure block. */
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: calc(52px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Footer navigation: 44px minimum touch target. The links were 26px tall. */
+footer nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* Footer conversion rows — the whole row is the target, and the arrow moves. */
+.footer-cta__arrow {
+  transition: transform var(--duration-transition) var(--ease-mech);
+}
+@media (hover: hover) {
+  .footer-cta:hover .footer-cta__arrow {
+    transform: translateX(8px);
+  }
+}
+
+/* Quote wizard option tiles — no dead hovers, and a real pressed state on
+   touch where hover does not exist. */
+.quote-option {
+  transition:
+    border-color var(--duration-micro) var(--ease-mech),
+    background-color var(--duration-micro) var(--ease-mech),
+    color var(--duration-micro) var(--ease-mech);
+}
+.quote-option:active {
+  transform: translateY(1px);
+}
+@media (hover: hover) {
+  .quote-option[aria-checked="false"]:hover {
+    border-color: var(--flame);
+    background: color-mix(in srgb, var(--flame) 8%, transparent);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Print stylesheet. Trade customers print quotes and capability statements;
+   almost nobody builds this, and it reads as ultra-professional.
+   -------------------------------------------------------------------------- */
+@media print {
+  @page {
+    margin: 16mm;
+  }
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #444;
+  }
+  .grain::after,
+  .blueprint-grid {
+    display: none;
+    background-image: none;
+  }
+  section {
+    break-inside: avoid;
+    padding-block: 8mm !important;
+  }
+  .js .reveal,
+  .js .reveal-wipe {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
   }
 }

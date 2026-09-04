@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useDivision } from "@/components/division/division-provider";
@@ -9,27 +9,28 @@ export function CarePlansTeaser() {
 
   return (
     <section
-      className="mx-auto max-w-6xl px-6"
-      style={{ paddingBottom: "var(--space-section-mobile)" }}
+      aria-labelledby="care-teaser-heading"
+      className="mx-auto max-w-[100rem] px-6"
+      style={{ paddingBottom: "var(--space-section)" }}
     >
       <div
-        className="flex flex-col items-start gap-4 border p-8 md:flex-row md:items-center md:justify-between"
+        className="flex flex-col items-start gap-6 border p-8 md:flex-row md:items-center md:justify-between md:p-10"
         style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)", background: "var(--paper-raised)" }}
       >
         <div>
-          <span className="font-mono-label" style={{ color: "var(--copper)" }}>
+          <span className="section-index font-mono-label" data-index="07" style={{ color: "var(--copper-ink)" }}>
             Care plans
           </span>
-          <p className="font-display mt-2 text-2xl" style={{ color: "var(--ink)" }}>
-            Annual service, breakdown cover and priority callout — one monthly payment.
+          <h2 id="care-teaser-heading" className="font-display mt-4 max-w-[26ch] text-2xl" style={{ color: "var(--ink)" }}>
+            Annual service, breakdown cover and priority callout, on one monthly payment.
+          </h2>
+          <p className="mt-3 max-w-[52ch] text-sm" style={{ color: "var(--steel)" }}>
+            Cancel any time, no minimum term, and the annual service is booked by us rather than
+            left for you to remember.
           </p>
         </div>
-        <Link
-          href="/care-plans"
-          className="font-mono-label whitespace-nowrap px-5 py-3"
-          style={{ background: "var(--flame)", color: "var(--paper)", borderRadius: "var(--radius)" }}
-        >
-          View plans
+        <Link href="/care-plans" className="btn btn--primary whitespace-nowrap">
+          Compare the three plans
         </Link>
       </div>
     </section>
