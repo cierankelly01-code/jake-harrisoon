@@ -39,12 +39,16 @@ export function Commitments() {
         </p>
       </header>
 
-      <ol className="mt-10 grid gap-px" style={{ background: "var(--border-hairline)" }}>
+      {/* One reveal on the list, not four on each row: motion-cookbook
+          discipline caps sitewide reveal targets at ~8, and four numbered
+          rows in the same list read as one idea arriving together anyway —
+          staggering them individually bought nothing but reveal budget. */}
+      <ol className="reveal mt-10 grid gap-px" style={{ background: "var(--border-hairline)" }}>
         {promises.map((promise, index) => (
           <li
             key={promise.id}
-            className="reveal group grid gap-4 p-6 md:grid-cols-12 md:gap-8 md:p-8"
-            style={{ background: "var(--surface)", ["--reveal-delay" as string]: String(index) }}
+            className="group grid gap-4 p-6 md:grid-cols-12 md:gap-8 md:p-8"
+            style={{ background: "var(--surface)" }}
           >
             <div className="flex items-start gap-4 md:col-span-5">
               <span className="font-mono-label pt-1" style={{ color: "var(--copper-ink)" }}>

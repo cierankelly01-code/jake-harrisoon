@@ -69,12 +69,15 @@ export function Standards() {
           <div className="flex flex-col gap-8 lg:col-span-8">
             <DirectorCards />
 
-            <div className="grid gap-px" style={{ background: "var(--border-hairline-dark)" }}>
-            {standards.map((standard, index) => (
+            {/* One reveal on the whole list, not one per row — see the same
+                note in commitments.tsx. Keeps the merged section's reveal
+                budget at 2 (this list + DirectorCards) instead of 6. */}
+            <div className="reveal grid gap-px" style={{ background: "var(--border-hairline-dark)" }}>
+            {standards.map((standard) => (
               <div
                 key={standard.code}
-                className="reveal grid gap-2 p-6 sm:grid-cols-12 sm:gap-6"
-                style={{ background: "var(--ink)", ["--reveal-delay" as string]: String(index) }}
+                className="grid gap-2 p-6 sm:grid-cols-12 sm:gap-6"
+                style={{ background: "var(--ink)" }}
               >
                 <span className="font-mono text-sm sm:col-span-3" style={{ color: "var(--flame-glow)" }}>
                   {standard.code}
