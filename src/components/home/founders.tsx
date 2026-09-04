@@ -11,78 +11,32 @@ import { FactOrPlaceholder } from "@/components/ui/placeholder";
  * So each director gets a drawn competency-card instead — the same object a
  * Gas Safe engineer hands you on the doorstep — which is honest, in the art
  * direction, and swaps to a real photograph the day one exists.
+ *
+ * Folded into Standards (standards.tsx) as one merged section rather than
+ * two — "borrowed credibility" and "who turns up" are both trust content
+ * back-to-back, and mobile length was a named priority. This file now
+ * exports the pieces Standards assembles: the name-formatter and the card
+ * grid itself, with no section/heading of its own.
  */
 /** "Jake and Harrison", "Jake, Harrison and Sam", "Jake". */
-function formatNames(names: readonly string[]): string {
+export function formatDirectorNames(names: readonly string[]): string {
   if (names.length <= 1) return names[0] ?? "";
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-export function Founders() {
+export function DirectorCards() {
   return (
-    <section
-      aria-labelledby="founders-heading"
-      className="border-y"
-      style={{ background: "var(--surface-raised)", borderColor: "var(--border-hairline)" }}
-    >
-      <div
-        className="mx-auto max-w-[100rem] px-6"
-        style={{ paddingTop: "var(--space-section)", paddingBottom: "var(--space-section)" }}
-      >
-        <div className="grid gap-7 sm:gap-12 lg:grid-cols-12">
-          <div className="lg:col-span-5">
-            <span className="section-index font-mono-label" data-index="05" style={{ color: "var(--copper-ink)" }}>
-              Who turns up
-            </span>
-            <h2 id="founders-heading" className="font-display mt-4 text-3xl" style={{ color: "var(--ink)" }}>
-              Two engineers, not a call centre.
-            </h2>
-            <p className="mt-6 max-w-[46ch] text-lg" style={{ color: "var(--steel)" }}>
-              {/* Built from the array rather than indexing [0] and [1], so
-                  dropping or adding a director cannot throw on the homepage. */}
-              {business.tradingName} is owned {business.ownership} by{" "}
-              {formatNames(business.directors.map((d) => d.firstName))}, both Gas Safe registered
-              engineers, both still on the tools.
-            </p>
-            <p className="mt-4 max-w-[46ch] text-base" style={{ color: "var(--steel)" }}>
-              That is the whole reason the price does not move after the survey: the person who quoted
-              your job is the person who has to do it. There is nobody to blame it on and nobody to
-              hand it off to.
-            </p>
-            <dl className="mt-8 grid grid-cols-2 gap-6 border-t pt-6" style={{ borderColor: "var(--border-hairline)" }}>
-              <div>
-                <dt className="font-mono-label" style={{ color: "var(--steel)" }}>
-                  Ownership
-                </dt>
-                <dd className="font-display mt-1 text-xl" style={{ color: "var(--ink)" }}>
-                  {business.ownership}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-mono-label" style={{ color: "var(--steel)" }}>
-                  Trading since
-                </dt>
-                <dd className="font-display mt-1 text-xl" style={{ color: "var(--ink)" }}>
-                  <FactOrPlaceholder value={business.established} label="ESTABLISHED" compact />
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:col-span-7">
-            {business.directors.map((director, index) => (
-              <CompetencyCard
-                key={director.firstName}
-                firstName={director.firstName}
-                surname={director.surname}
-                qualification={director.qualification}
-                index={index}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
+    <div className="grid grid-cols-2 gap-3 sm:gap-6">
+      {business.directors.map((director, index) => (
+        <CompetencyCard
+          key={director.firstName}
+          firstName={director.firstName}
+          surname={director.surname}
+          qualification={director.qualification}
+          index={index}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -101,22 +55,25 @@ function CompetencyCard({
     <article
       className="reveal reveal--panel flex flex-col border"
       style={{
-        borderColor: "var(--border-hairline)",
+        borderColor: "var(--border-hairline-dark)",
         borderRadius: "var(--radius)",
-        background: "var(--ink)",
+        // Elevated-surface token, not --ink: the merged Standards section
+        // this now lives inside is itself --ink, so the card needs to sit
+        // visibly above its own background rather than disappear into it.
+        background: "var(--slate)",
         ["--reveal-delay" as string]: String(index),
       }}
     >
       <header
-        className="font-mono-label flex items-center justify-between border-b px-4 py-3"
+        className="font-mono-label flex items-center justify-between border-b px-3 py-2 sm:px-4 sm:py-3"
         style={{ borderColor: "var(--border-hairline-dark)", color: "var(--steel-dim)" }}
       >
-        <span>Director {String(index + 1).padStart(2, "0")}</span>
+        <span>DIR {String(index + 1).padStart(2, "0")}</span>
         <span style={{ color: "var(--copper-bright)" }}>Gas Safe</span>
       </header>
 
       {/* Drawn portrait plate — a competency card, not a stock headshot. */}
-      <div className="grain relative aspect-[16/9] overflow-hidden sm:aspect-[4/3]" style={{ background: "var(--slate-deep)" }}>
+      <div className="grain relative aspect-[4/3] overflow-hidden" style={{ background: "var(--slate-deep)" }}>
         <svg viewBox="0 0 320 240" className="absolute inset-0 h-full w-full" aria-hidden="true">
           <defs>
             <pattern id={`hatch-${index}`} width="10" height="10" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
@@ -144,14 +101,14 @@ function CompetencyCard({
         </svg>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 px-4 py-5">
-        <h3 className="font-display text-xl" style={{ color: "var(--paper)" }}>
+      <div className="flex flex-1 flex-col gap-1.5 px-3 py-3 sm:gap-2 sm:px-4 sm:py-5">
+        <h3 className="font-display text-lg sm:text-xl" style={{ color: "var(--paper)" }}>
           {firstName}{" "}
           <span className="align-middle">
             <FactOrPlaceholder value={surname} label={`${firstName.toUpperCase()} SURNAME`} compact />
           </span>
         </h3>
-        <p className="text-sm" style={{ color: "var(--steel-dim)" }}>
+        <p className="text-xs sm:text-sm" style={{ color: "var(--steel-dim)" }}>
           {qualification}. Co-owner, on the tools.
         </p>
       </div>

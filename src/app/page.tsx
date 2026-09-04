@@ -4,7 +4,6 @@ import { Commitments } from "@/components/home/commitments";
 import { ServicesGrid } from "@/components/home/services-grid";
 import { ProcessStory } from "@/components/home/process-story";
 import { Standards } from "@/components/home/standards";
-import { Founders } from "@/components/home/founders";
 import { ComparisonTable } from "@/components/plugins/comparison-table";
 import { CarePlansTeaser } from "@/components/home/care-plans-teaser";
 import { ServiceAreaMap } from "@/components/home/service-area-map";
@@ -21,13 +20,17 @@ import { FinalCta } from "@/components/home/final-cta";
  *   Commitments     the named guarantee (proof)                  light
  *   Services        the offer                                    light
  *   Process ★       showstopper — kills fear of the unknown      dark
- *   Standards       borrowed credibility                         dark
- *   Founders        who turns up                                 raised
+ *   Standards       borrowed credibility + who turns up          dark
  *   Comparison      objection handling                           light
  *   Care plans      secondary offer                              light
  *   Coverage        local proof                                  light
  *   FAQ             remaining objections                         light
  *   Final CTA       close                                        blue
+ *
+ * Standards and Founders (the two named directors) used to be separate
+ * sections — merged into one (round 4, mobile-length fix) since both were
+ * "credibility" content back-to-back and mobile ran 18+ viewports. Nothing
+ * was cut; see standards.tsx.
  *
  * The empty-state sections that used to sit in the middle of this page
  * (recent work, reviews, accreditations held, half-null capability stats)
@@ -45,7 +48,6 @@ export default function HomePage() {
       <ServicesGrid />
       <ProcessStory />
       <Standards />
-      <Founders />
       <ComparisonTable />
       <CarePlansTeaser />
       <ServiceAreaMap />

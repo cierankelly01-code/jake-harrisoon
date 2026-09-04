@@ -18,7 +18,7 @@ export function CarePlansTeaser() {
         style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)", background: "var(--paper-raised)" }}
       >
         <div>
-          <span className="section-index font-mono-label" data-index="07" style={{ color: "var(--copper-ink)" }}>
+          <span className="section-index font-mono-label" data-index="06" style={{ color: "var(--copper-ink)" }}>
             Care plans
           </span>
           <h2 id="care-teaser-heading" className="font-display mt-4 max-w-[26ch] text-2xl" style={{ color: "var(--ink)" }}>

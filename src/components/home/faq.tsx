@@ -176,7 +176,7 @@ export function Faq() {
 
       <div className="grid gap-6 sm:gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-4">
-          <span className="section-index font-mono-label" data-index="09" style={{ color: "var(--copper-ink)" }}>
+          <span className="section-index font-mono-label" data-index="08" style={{ color: "var(--copper-ink)" }}>
             Questions
           </span>
           <h2 id="faq-heading" className="font-display mt-4 text-3xl" style={{ color: "var(--ink)" }}>

@@ -18,7 +18,7 @@ export function ComparisonTable() {
       className="mx-auto max-w-[100rem] px-6"
       style={{ paddingTop: "var(--space-section-dense)", paddingBottom: "var(--space-section-dense)" }}
     >
-      <span className="section-index font-mono-label" data-index="06" style={{ color: "var(--copper-ink)" }}>
+      <span className="section-index font-mono-label" data-index="05" style={{ color: "var(--copper-ink)" }}>
         Straight comparison
       </span>
       <h2 id="comparison-heading" className="font-display mt-4 max-w-[24ch] text-3xl" style={{ color: "var(--ink)" }}>

@@ -3,15 +3,24 @@
 import { useDivision } from "@/components/division/division-provider";
 import { business } from "@/lib/content/business";
 import { COMMERCIAL_STANDARDS, DOMESTIC_STANDARDS } from "@/lib/content/promises";
+import { DirectorCards, formatDirectorNames } from "@/components/home/founders";
 
 /**
- * Borrowed credibility, done honestly.
+ * Borrowed credibility, done honestly — and who turns up, merged into one
+ * section rather than two. Round 4 mobile-length fix: Standards and
+ * Founders were back-to-back "credibility" content (a dark section
+ * immediately followed by a raised one) at 1461px + 1321px on a 375px
+ * viewport; one section's worth of padding and a border transition between
+ * them was pure overhead. This keeps every fact from both — nothing was cut
+ * — under one heading, one intro paragraph, and one set of section padding.
  *
  * The left column explains the published standards the work is carried out
  * to — describing the standard itself, which is verifiable and useful, and
- * never claiming a registration. The right column lists accreditations, and
- * renders one as held only when `business.accreditationsHeld` actually
- * contains it; everything else is plainly labelled as being worked towards.
+ * never claiming a registration — and introduces the two people doing the
+ * work. The right column stacks the director cards, the standards list
+ * (which renders one as held only when `business.accreditationsHeld`
+ * actually contains it — everything else is plainly labelled as being
+ * worked towards), and accreditations.
  *
  * Replaces the previous "None recorded yet — see ACCREDITATION_ROADMAP.md"
  * panel, which leaked an internal filename onto the public site.
@@ -43,18 +52,24 @@ export function Standards() {
         <div className="grid gap-7 sm:gap-12 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-4">
             <span className="section-index font-mono-label" data-index="04" style={{ color: "var(--copper-bright)" }}>
-              Standards
+              Standards &amp; who turns up
             </span>
             <h2 id="standards-heading" className="font-display mt-4 text-3xl">
-              The standards the work is done to.
+              The standards the work is done to, by two engineers, not a call centre.
             </h2>
-            <p className="mt-5 max-w-[40ch] text-sm" style={{ color: "var(--steel-dim)" }}>
-              These are published national standards, not badges we have awarded ourselves. Where a
-              scheme requires registration, we list it as held only once it is.
+            <p className="mt-5 max-w-[42ch] text-sm" style={{ color: "var(--steel-dim)" }}>
+              {business.tradingName} is owned {business.ownership} by{" "}
+              {formatDirectorNames(business.directors.map((d) => d.firstName))}, both Gas Safe
+              registered and still on the tools — the person who quotes your job is the person who
+              does it. What follows are published national standards, not badges we have awarded
+              ourselves: where a scheme requires registration, we list it as held only once it is.
             </p>
           </div>
 
-          <div className="grid gap-px lg:col-span-8" style={{ background: "var(--border-hairline-dark)" }}>
+          <div className="flex flex-col gap-8 lg:col-span-8">
+            <DirectorCards />
+
+            <div className="grid gap-px" style={{ background: "var(--border-hairline-dark)" }}>
             {standards.map((standard, index) => (
               <div
                 key={standard.code}
@@ -72,6 +87,7 @@ export function Standards() {
                 </span>
               </div>
             ))}
+            </div>
           </div>
         </div>
 

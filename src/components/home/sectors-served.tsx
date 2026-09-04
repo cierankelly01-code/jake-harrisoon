@@ -42,6 +42,13 @@ export const DOMESTIC_WORK = [
  * dividers instead of an auto-scrolling bullet train. No motion to pause on
  * hover or fight with reduced-motion, and a screen reader hears the list
  * exactly once because there is only one copy of it.
+ *
+ * A single scrollable row rather than wrapping: wrapping twelve items at
+ * 375px ran to six stacked rows (~300px, five times the marquee it
+ * replaced) and undid part of the mobile-length work done elsewhere on the
+ * page. A horizontal `overflow-x-auto` strip keeps the section a fixed,
+ * short height at every width — the same "wide content scrolls in its own
+ * lane" rule the /privacy table already follows.
  */
 export function SectorsServed() {
   const { division } = useDivision();
@@ -58,11 +65,11 @@ export function SectorsServed() {
       <h2 id="ticker-heading" className="sr-only">
         {label}
       </h2>
-      <ul className="mx-auto flex max-w-[100rem] flex-wrap">
+      <ul className="mx-auto flex max-w-[100rem] flex-nowrap overflow-x-auto">
         {items.map((item, index) => (
           <li
             key={item}
-            className="font-mono-label flex items-center gap-2.5 border-r border-t px-4 py-3 sm:px-5"
+            className="font-mono-label flex shrink-0 items-center gap-2.5 border-r px-4 py-3 sm:px-5"
             style={{ color: "var(--steel-dim)", borderColor: "var(--border-hairline-dark)" }}
           >
             <span aria-hidden="true" style={{ color: "var(--copper-bright)", letterSpacing: 0 }}>
