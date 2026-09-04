@@ -29,7 +29,14 @@ export function CarePlansTeaser() {
             left for you to remember.
           </p>
         </div>
-        <Link href="/care-plans" className="btn btn--primary whitespace-nowrap">
+        {/* No whitespace-nowrap: at 320px this card's available width (after
+            section + card padding) is under 200px, and "Compare the three
+            plans" set to nowrap forced 19px of real page overflow — only
+            ever caught once /domestic existed as its own route, since this
+            section is domestic-only and previous sweeps mostly ran against
+            the commercial default. A wrapped two-line button is fine; page
+            overflow is not. */}
+        <Link href="/care-plans" className="btn btn--primary text-center">
           Compare the three plans
         </Link>
       </div>

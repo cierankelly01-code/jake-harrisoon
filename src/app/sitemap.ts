@@ -19,7 +19,13 @@ type Entry = {
 };
 
 const ROUTES: Entry[] = [
-  { path: "/", priority: 1.0, changeFrequency: "weekly" },
+  // /commercial and /domestic are the real, indexable homepages (see
+  // DESIGN_SYSTEM.md §10) — `/` renders the same content cookie-driven and
+  // sets its own canonical to whichever of these it resolved to, so it is
+  // deliberately not listed here at a competing priority.
+  { path: "/commercial", priority: 1.0, changeFrequency: "weekly" },
+  { path: "/domestic", priority: 1.0, changeFrequency: "weekly" },
+  { path: "/", priority: 0.5, changeFrequency: "weekly" },
   // The two live conversion paths — these earn the highest non-home priority.
   { path: "/boiler-quote", priority: 0.9, changeFrequency: "monthly" },
   { path: "/tenders", priority: 0.9, changeFrequency: "monthly" },
