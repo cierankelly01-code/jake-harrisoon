@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useDivision } from "./division-provider";
 import { track } from "@/lib/analytics";
+import { DOMESTIC_ONLY_ROUTES, COMMERCIAL_ONLY_ROUTES } from "@/lib/division-shared";
 
 export function DivisionToggle({
   tone = "dark",
@@ -18,14 +19,22 @@ export function DivisionToggle({
   const pathname = usePathname();
   const router = useRouter();
   const isDark = tone === "dark";
-  // On the dedicated /commercial or /domestic routes the URL is itself the
-  // canonical statement of which proposition is showing (DESIGN_SYSTEM.md
-  // §10) — switching there navigates to the other route rather than
-  // silently swapping content under a URL that would then say the wrong
-  // thing. Everywhere else (the cookie-driven `/` and every other page)
-  // the existing no-reload swap is unchanged.
+  // On /commercial, /domestic, and every single-division page (the wizard,
+  // care plans, capability, tenders...) the surrounding page content can't
+  // itself react to the toggle — lib/division.ts forces these server-side
+  // for exactly that reason. Switching here navigates to the general /
+  // commercial or /domestic homepage instead of silently swapping the
+  // header under content that would then contradict it (the bug a fresh
+  // reviewer caught: the toggle showed "Commercial" active while the page
+  // was the domestic boiler-quote wizard). Everywhere else (the
+  // cookie-driven `/` and division-neutral pages like /contact) the
+  // existing no-reload swap is unchanged.
   const routeDivision =
-    pathname === "/commercial" ? "commercial" : pathname === "/domestic" ? "domestic" : null;
+    pathname === "/commercial" || COMMERCIAL_ONLY_ROUTES.some((route) => pathname.startsWith(route))
+      ? "commercial"
+      : pathname === "/domestic" || DOMESTIC_ONLY_ROUTES.some((route) => pathname.startsWith(route))
+        ? "domestic"
+        : null;
 
   return (
     <div
