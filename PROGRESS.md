@@ -2,6 +2,51 @@
 
 Tracking against the master brief's own §19 Build Order.
 
+## Round 3 & 4 (BADMAN protocol) — 4 September 2026
+
+Two more passes since round 2's 68/100. Full detail lives in git history (each
+round is several commits, not one) and `HANDOFF_BADMAN_ROUND3.md`; this is the
+summary.
+
+**Round 3** (re-baselined at 48/100 by a fresh reviewer under stricter rules —
+see the note in `HANDOFF_BADMAN_ROUND3.md` on why a lower number than round 2
+is not a regression): fixed a hydration mismatch on every route, a mobile hero
+that pushed the primary CTA off the fold, a division toggle that rendered at
+width 0 below 640px, cut the process-story showstopper from 380vh to 210vh,
+fixed a motion stagger bug, styled the native form controls on `/tenders`, and
+replaced 11+ visible "TBC" placeholder chips sitewide with either an omitted
+field or a hidden audit marker — see `src/components/ui/placeholder.tsx`.
+
+**Round 4** (this pass — not yet re-scored by a fresh reviewer as this file is
+being written; see the top of git log / ask for the current number):
+- A fresh reviewer found a real bug: the sitewide reveal-on-scroll system
+  could get 10 of 14 targets permanently stuck at `opacity:0` when a large
+  instant scroll (fast fling, repeated Page Down, back-navigation) crossed an
+  element's IntersectionObserver threshold in a single frame. Fixed with a
+  scroll-triggered safety net in `reveal-init.tsx` — see that file's comments.
+- Killed the two most template-legible elements on the page (both named in
+  the round 3 rebuttals as not-yet-done): the outlined giant footer wordmark
+  (replaced with the statutory disclosure row restyled as a drawing title
+  block) and the homepage ticker's infinite-scroll marquee (replaced with a
+  static, horizontally-scrollable spec-sheet index strip).
+- Merged the homepage's Standards and Founders sections into one (user
+  picked this from three proposed mobile-length fixes) — desktop 10.9 → 10.6
+  viewports, mobile 18.2 → 17.4.
+- Cut sitewide reveal-animation targets from 14 to 8 (motion-cookbook's
+  ~6-per-viewport-entry rule) by revealing a list once instead of per-row.
+- **Gave the commercial division a real URL** — `/commercial` and
+  `/domestic`, DESIGN_SYSTEM.md §10's recommended fix, previously the
+  single biggest architectural gap (half the site had no search surface).
+- **Added the first tests in the repo** — vitest, `calculateQuote` and the
+  `movingLocation` derivation (13 tests) — see "Still open" below, this was
+  outstanding since round 1's £400 pricing bug.
+- **New feature**: `/emergency` — a triage flow for gas smell / leak / no
+  heat / no hot water, user-picked from four proposed options. Gas smell gets
+  an always-visible safety banner routing to the National Gas Emergency
+  Service; the other three are keyboard-operable, JS-optional `<details>`
+  panels with do-this-now steps, closing on the existing arrival-window
+  promise and routing into `/boiler-quote` or the contact-links fallback.
+
 ## Design & conversion pass (BADMAN protocol) — 3–4 September 2026
 
 The outstanding fresh-eyes **visual** review noted at the bottom of this file finally ran, and
@@ -132,16 +177,16 @@ Companies House.
 
 ### Still open
 
-- **The Commercial division has no URL** — the single biggest architectural
-  gap. See `DESIGN_SYSTEM.md` §10 for the recommended fix and why the obvious
-  approach does not work.
+- ~~The Commercial division has no URL~~ — **done in round 4**: `/commercial`
+  and `/domestic`, see `DESIGN_SYSTEM.md` §10.
 - **`/prices` still publishes no prices.** Every label that pointed at it now
   reads "How we price" and the page leads on method, so nothing promises what
   it cannot deliver — but the page is thin until real figures are signed off.
-- There are **no tests in the repo**. The £400 defect was pure pricing logic;
-  a single test asserting that a blank target location produces no uplift
-  would have caught it. `calculateQuote` and the `movingLocation` derivation
-  are the two highest-value units to cover first.
+- ~~There are no tests in the repo~~ — **`calculateQuote` and
+  `movingLocation` are covered as of round 4** (`src/lib/quote/pricing.test.ts`,
+  `npm test`). Nothing else in the repo has coverage yet — the quote wizard's
+  step validation and the postcode-coverage check are the next highest-value
+  units.
 - The boiler-quote wizard does not work with JavaScript disabled (see
   `DESIGN_SYSTEM.md` §11).
 - **ICO registration** is a legal requirement already triggered — the wizard is processing
@@ -177,9 +222,10 @@ Phase 2, per the brief's "never present localhost" instruction.
 ## Phase 2 — not started
 
 All other commercial/domestic/landlord service pages, `/accreditations`, `/compliance`,
-`/team`, `/projects`, `/areas`, `/about`, `/emergency`, `/guides`, `/careers`.
-(`/contact` was pulled forward into the design pass — several CTAs fall back to it when the
-phone number is unconfirmed, so it had to exist.)
+`/team`, `/projects`, `/areas`, `/about`, `/guides`, `/careers`.
+(`/contact` and `/emergency` were both pulled forward into the design pass — several CTAs fall
+back to `/contact` when the phone number is unconfirmed, and `/emergency` is round 4's new
+triage-flow feature, so both had to exist already.)
 
 ## Phase 3 — not started
 
@@ -242,8 +288,10 @@ was silently waved through.
 
 ## Build health
 
-- `npm run build` — clean, all 6 routes compile
-- `npm run lint` — clean
+- `npm run build` — clean, 20 routes compile (`NEXT_DIST_DIR=.next-build npm run build`
+  if `next dev` is also running — see next.config.ts)
+- `npm run lint` — clean (runs as part of `next build` too)
+- `npm test` — 13/13 passing (vitest; `calculateQuote` and `deriveMovingLocation`)
 - TypeScript strict, zero `any`, zero `@ts-ignore`
 - RLS enabled + deny-by-default on all 5 Phase 1 tables (`supabase/migrations/0001_phase1_schema.sql`);
   not yet verified against a live Supabase project with an anon client (no project provisioned
