@@ -26,7 +26,14 @@ call-outs; enquiries from outside the list are answered honestly either way.
 
 ## Key pages
 
-- [Home](/): Overview of both divisions, what the business does and how it works.
+- [Home](/): Overview of both divisions, what the business does and how it works. Shows whichever
+  of the two pages below the visitor last chose, or the commercial homepage by default.
+- [Commercial](/commercial): The mechanical-contracting homepage — PPM, statutory compliance,
+  reactive cover, tender and PQQ work.
+- [Domestic](/domestic): The homeowner homepage — boiler installation, servicing, gas safety
+  certificates, emergency plumbing, care plans.
+- [Emergency](/emergency): What to do right now for a gas smell, a leak, no heat or no hot water,
+  before an engineer arrives. Generic safety guidance, not specific to any one property.
 - [Instant boiler quote](/boiler-quote): A multi-step tool that produces a real, itemised
   domestic boiler replacement price in about two minutes, without a home visit first. The primary
   domestic conversion path.
