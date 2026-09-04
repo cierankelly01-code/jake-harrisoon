@@ -62,18 +62,26 @@ than running as one continuous cream field:
 
 ```
 Hero            dark    hook + day-one proof
-Ticker          dark    coverage marquee
+Ticker          dark    what's covered — static spec-sheet index strip
 Commitments     light   the named guarantee
 Services        light   the offer
 Process ★       dark    THE SHOWSTOPPER
-Standards       dark    borrowed credibility
-Founders        raised  who turns up
+Standards       dark    borrowed credibility + who turns up
 Comparison      light   objection handling
-Care plans      light   secondary offer
+Care plans      light   secondary offer (domestic only)
 Coverage        light   local proof
 FAQ             light   remaining objections
 Final CTA       blue    close
 ```
+
+Standards and Founders (the two named directors) were separate sections
+through round 3; merged into one in round 4 (mobile ran 18+ viewports, and
+they were back-to-back "credibility" content) — see standards.tsx. Nothing
+was cut.
+
+The homepage ticker used to be an infinite-scroll marquee — also round 4,
+killed alongside the outlined footer wordmark as the two most
+template-legible elements on the page. See sectors-served.tsx.
 
 Sections announce their own index (`01`, `02`…) via the `.section-index`
 class and a `data-index` attribute — drawing-sheet numbering.
@@ -116,7 +124,7 @@ Self-contained, token-driven, no dependencies.
 | Comparison table | `components/plugins/comparison-table.tsx` | Names no competitor; right column describes common trade practice |
 | FAQ accordion | `components/home/faq.tsx` | `<details>`-based, works with JS off, emits FAQPage JSON-LD |
 | Pricing table | `components/care-plans/care-plans-section.tsx` | 3 tiers, "Most chosen" badge on the middle tier, high anchor on Complete |
-| Announcement ticker | `components/home/sectors-served.tsx` | Duplicated track, clone is `aria-hidden`, pauses on hover and focus |
+| Spec-sheet index strip | `components/home/sectors-served.tsx` | Static (round 4 — was an infinite-scroll marquee), single row, `overflow-x-auto` |
 | Counter | `components/ui/counter.tsx` | Odometer roll-in. Never animates a placeholder |
 
 ---
@@ -195,39 +203,70 @@ That file is what replaced three consecutive "nothing here yet" sections.
       fastest way to look like every other trade site.
 - [ ] Smoke test on a real phone, not devtools emulation.
 
-## 10. The biggest open architectural decision: the Commercial division has no URL
+## 10. Solved: the Commercial division has a real URL
+
+**Round 4 status: done.** `/commercial` and `/domestic` are real, indexable
+routes (`src/app/commercial/page.tsx`, `src/app/domestic/page.tsx`), each
+with its own `generateMetadata`, both rendering `HomepageSections` (factored
+out of `app/page.tsx` for exactly this) with the division forced server-side
+regardless of the `marmion-division` cookie. `/` keeps its original
+cookie-driven behaviour for a returning visitor, and its own
+`generateMetadata` sets `canonical` dynamically to whichever of
+`/commercial` or `/domestic` it resolved to render, so `/` and its default
+division's dedicated URL are never competing duplicate-content pages. The
+header's division toggle detects when it's on one of the two dedicated
+routes and navigates (`router.push`) to the other instead of swapping
+content under a URL that would then say the wrong thing — unchanged
+everywhere else.
+
+The mechanism that makes forcing the division possible without a second,
+disagreeing `DivisionProvider`: `src/middleware.ts` stamps the resolved
+pathname onto a request header, and `lib/division.ts`'s
+`getInitialDivision()` reads it before falling back to the cookie. This is
+the "real routes" option below (option 1) — the original write-up is kept
+for context on why the alternative wasn't taken.
+
+<details>
+<summary>Original problem statement and options considered</summary>
 
 The header toggle swaps the entire homepage — different `h1`, different hero,
 different proof cells, different nav, different services. It is a substantial
-second proposition. But it lives in a `marmion-division` cookie, so:
+second proposition. But it lived in a `marmion-division` cookie, so:
 
-- `location.href` stays `/` in both states.
-- `<title>`, description and canonical are the same for both.
-- The commercial homepage cannot be linked to, shared, or indexed. For a firm
-  chasing tender work, half the site has no search surface.
-- The cookie persists, so a domestic visitor who once tapped Commercial keeps
+- `location.href` stayed `/` in both states.
+- `<title>`, description and canonical were the same for both.
+- The commercial homepage could not be linked to, shared, or indexed. For a
+  firm chasing tender work, half the site had no search surface.
+- The cookie persisted, so a domestic visitor who once tapped Commercial kept
   landing on the commercial homepage.
 
-`/capability` and `/tenders` do carry the commercial proposition and are
-indexed, so this is not invisible — but the commercial *homepage* is.
+`/capability` and `/tenders` carried the commercial proposition and were
+already indexed, so this was not invisible — but the commercial *homepage*
+was.
 
-**Recommended fix, in preference order:**
+**Options considered, in preference order:**
 
-1. **Real routes.** `/commercial` and `/domestic` as their own pages, each
-   with its own `generateMetadata` (title, description, canonical), rendering
-   the shared homepage sections with the division forced. `/` keeps the
-   cookie-driven behaviour and canonicalises to whichever it renders. This is
-   the only option that gives both propositions their own search surface, and
-   it is the one to take if organic traffic matters.
+1. **Real routes** (taken). `/commercial` and `/domestic` as their own pages,
+   each with its own `generateMetadata` (title, description, canonical),
+   rendering the shared homepage sections with the division forced. `/` keeps
+   the cookie-driven behaviour and canonicalises to whichever it renders.
+   The only option that gives both propositions their own search surface.
 2. **Middleware rewrite.** `/commercial` and `/domestic` rewrite to `/` and
    set the cookie. Twenty lines, makes both states shareable and keeps the
    header nav consistent — but both URLs serve identical metadata, so you must
    set a distinct canonical per path or Google will treat one as a duplicate
-   and drop it.
+   and drop it. Not taken: option 1 was barely more work and needed no extra
+   canonical bookkeeping.
 
-Do not attempt this by prop-drilling a division override through the eleven
-homepage sections — the header and footer live in the root layout, outside any
-nested provider, so the nav would disagree with the page.
+</details>
+
+Do not attempt this by prop-drilling a division override through the ten
+homepage sections, or by wrapping just the page content in a second, nested
+`DivisionProvider`. The header and footer share the *same* provider instance
+as the page — all three live inside one `DivisionProvider` in the root
+layout — so a nested override around only `{children}` leaves the header
+reading the outer (cookie-driven) provider while the page reads the inner
+(forced) one, and the nav disagrees with the page it's sitting above.
 
 ## 11. Known limitation
 
