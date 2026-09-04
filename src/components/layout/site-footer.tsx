@@ -4,17 +4,30 @@ import { PlaceholderMarker } from "@/components/ui/placeholder";
 import { phoneLink, emailLink } from "@/lib/content/contact-links";
 
 /**
- * The footer as a designed destination rather than a sitemap dump: a giant
- * wordmark, the two conversion routes restated, the coverage list as real
- * local-SEO content, and the statutory disclosure block.
+ * The footer as a designed destination rather than a sitemap dump: the two
+ * conversion routes restated, the coverage list as real local-SEO content,
+ * and the statutory disclosure block presented as a drawing title block
+ * rather than a plain text row.
+ *
+ * A giant outlined wordmark used to close the page here. Killed: it is the
+ * single most template-legible move in web design right now — every AI
+ * page generator reaches for it — and it actively broke on mobile (the
+ * word wrapped mid-letter, "MARMI" / "ON", on every page at 375px, because
+ * `clamp(4rem, 15vw, 15rem)` has no floor low enough for a nine-letter word
+ * at phone widths). The brand name is already stated in prose two columns
+ * over; it does not need to shout twice. In its place: the statutory
+ * disclosure row, which every UK limited company's site is required to
+ * carry, restyled as the title block a real drawing set ends on — bordered
+ * cells, mono labels, sheet-register language — so the legally mandatory
+ * content does the closing flourish's job instead of a decorative repeat.
  *
  * Companies Act 2006 s.82 / the Company, LLP and Business (Names and Trading
  * Disclosures) Regulations require a UK limited company's website to state
  * its registered name, company number, place of registration and registered
- * office address. None of those are confirmed yet, so each renders as a
- * placeholder chip AND is called out as a launch blocker in the note beneath
- * — this is the one place on the site where an amber chip is doing exactly
- * the job it should.
+ * office address. None of those are confirmed yet, so each cell renders a
+ * placeholder marker AND is called out as a launch blocker in
+ * CONTENT_NEEDED.md — this is the one place on the site where showing the
+ * gap is doing exactly the job it should.
  */
 const SERVICE_LINKS = [
   { label: "Capability statement", href: "/capability" },
@@ -33,13 +46,16 @@ const LEGAL_LINKS = [
 const PENDING_LEGAL = ["Complaints procedure", "Modern slavery statement"];
 
 /**
- * Companies Act 2006 / ecommerce disclosures. Each row renders only once its
- * value exists in `business` — see CONTENT_NEEDED.md for what is outstanding.
+ * Companies Act 2006 / ecommerce disclosures, laid out as a drawing title
+ * block. Each cell renders its value only once it exists in `business` —
+ * see CONTENT_NEEDED.md for what is outstanding.
  */
-const DISCLOSURES = [
+const TITLE_BLOCK = [
+  { label: "REGISTERED NAME", value: business.legalEntity as string | null, marker: "REGISTERED NAME" },
   { label: "COMPANY NO.", value: business.companyNumber, marker: "COMPANY NUMBER" },
   { label: "VAT NO.", value: business.vatNumber, marker: "VAT NUMBER" },
   { label: "GAS SAFE", value: business.gasSafeNumber, marker: "GAS SAFE NUMBER" },
+  { label: "REGISTERED OFFICE", value: business.registeredOffice, marker: "REGISTERED OFFICE" },
 ] as const;
 
 export function SiteFooter() {
@@ -145,62 +161,45 @@ export function SiteFooter() {
         </nav>
       </div>
 
-      {/* Giant wordmark — the footer earns its own screen. */}
-      <div className="relative z-10 overflow-hidden px-6">
-        <span
-          aria-hidden="true"
-          className="font-display block select-none leading-[0.8]"
-          style={{
-            fontSize: "clamp(4rem, 15vw, 15rem)",
-            color: "transparent",
-            WebkitTextStroke: "1px var(--border-hairline-dark)",
-          }}
+      {/* Statutory title block. Reads like the block a real drawing set
+          closes on: SHEET / SCALE / REV cells, hairline-divided, mono
+          labels over the value. Every cell here is a legal disclosure
+          requirement, not decoration — see the file-header note above. A
+          cell appears once its fact is known; PlaceholderMarker keeps the
+          gap in the DOM for the [data-placeholder] sweep and in
+          CONTENT_NEEDED.md until then. */}
+      <div className="relative z-10 border-t" style={{ borderColor: "var(--border-hairline-dark)" }}>
+        {/* Every cell carries its own full border rather than relying on
+            nth-child selectors to place dividers only between siblings —
+            adjacent hairlines simply overlap to one line, and the lattice
+            this makes echoes the blueprint grid used on the hero. */}
+        <div
+          className="mx-auto grid max-w-[100rem] gap-px sm:grid-cols-3 lg:grid-cols-5"
+          style={{ background: "var(--border-hairline-dark)" }}
         >
-          MARMION
-        </span>
+          {TITLE_BLOCK.map(({ label, value, marker }) => (
+            <div key={marker} className="px-6 py-5" style={{ background: "var(--ink)" }}>
+              <span className="font-mono-label block" style={{ color: "var(--steel-dim)" }}>
+                {label}
+              </span>
+              <span className="mt-2 block text-sm" style={{ color: "var(--paper)" }}>
+                {value ?? <PlaceholderMarker label={marker} />}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div
-        className="relative z-10 mx-auto flex max-w-[100rem] flex-col gap-4 border-t px-6 py-8 font-mono text-xs md:flex-row md:items-start md:justify-between"
+        className="relative z-10 mx-auto flex max-w-[100rem] flex-col gap-2 border-t px-6 py-6 font-mono text-xs md:flex-row md:items-center md:justify-between"
         style={{ color: "var(--steel-dim)", borderColor: "var(--border-hairline-dark)" }}
       >
-        {/* Statutory disclosures. A row appears once its fact is known and is
-            silently absent until then — printing "COMPANY NO." beside an amber
-            warning triangle on all ten pages satisfied no disclosure duty and
-            told every visitor the site was unfinished. The gaps are still
-            tracked: PlaceholderMarker keeps them in the DOM for the
-            [data-placeholder] sweep, and in CONTENT_NEEDED.md for the client. */}
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="flex items-center gap-2">
-              REGISTERED NAME <span style={{ color: "var(--paper)" }}>{business.legalEntity}</span>
-            </span>
-            {DISCLOSURES.map(({ label, value, marker }) =>
-              value ? (
-                <span key={marker} className="flex items-center gap-2">
-                  {label} <span style={{ color: "var(--paper)" }}>{value}</span>
-                </span>
-              ) : (
-                <PlaceholderMarker key={marker} label={marker} />
-              )
-            )}
-          </div>
-          {business.registeredOffice ? (
-            <span className="flex flex-wrap items-center gap-2">
-              REGISTERED OFFICE{" "}
-              <span style={{ color: "var(--paper)" }}>{business.registeredOffice}</span>
-            </span>
-          ) : (
-            <PlaceholderMarker label="REGISTERED OFFICE" />
-          )}
-        </div>
+        <span>SHEET — FOOTER · SCALE N.T.S.</span>
         {/* Rendered at request time, not build time: this page is otherwise
             statically prerendered, which would freeze the year at whenever the
             site was last deployed. */}
-        <span className="md:text-right" suppressHydrationWarning>
-          © {new Date().getFullYear()} {business.legalEntity}.
-          <br />
-          We stand behind the work.
+        <span suppressHydrationWarning>
+          © {new Date().getFullYear()} {business.legalEntity}. We stand behind the work.
         </span>
       </div>
     </footer>

@@ -280,6 +280,18 @@ html {
      contrast of the text it sits beside. */
   color: currentColor;
   opacity: 0.65;
+  /* `::before` on a flex container becomes a flex item like any other
+     child. A few call sites put a long h2 directly inside `.section-index`
+     rather than beside it, and without these two lines the default
+     min-width:auto/flex-shrink:1 let the number itself get squeezed down
+     to nothing and wrap "04" onto two stacked lines at narrow widths —
+     confirmed on /contact at 375px. The number is two characters and never
+     needs to give up space; the heading should wrap instead. */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.section-index > * {
+  min-width: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -436,39 +448,6 @@ html {
   }
   .js .reveal-wipe {
     clip-path: none;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Marquee (announcement ticker). Track is duplicated in markup; the clone
-   carries aria-hidden. Pauses on hover and on keyboard focus within.
-   -------------------------------------------------------------------------- */
-@keyframes marquee-track {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-.marquee {
-  overflow: hidden;
-}
-.marquee__track {
-  display: flex;
-  width: max-content;
-  animation: marquee-track var(--marquee-duration, 40s) linear infinite;
-}
-.marquee:hover .marquee__track,
-.marquee:focus-within .marquee__track {
-  animation-play-state: paused;
-}
-@media (prefers-reduced-motion: reduce) {
-  .marquee__track {
-    animation: none;
-  }
-  .marquee {
-    overflow-x: auto;
   }
 }
 
