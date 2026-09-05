@@ -2,6 +2,33 @@
 
 Tracking against the master brief's own §19 Build Order.
 
+## Commercial division switched off — 5 September 2026
+
+Client request: focus on domestic only "for right now." **Temporary, not a
+deletion** — every commercial-specific thing (the division toggle,
+`/commercial`, `/capability`, `/tenders`, every `COMMERCIAL_*` copy branch
+across the codebase) is still in the repo, just switched off behind one
+constant. Flip `COMMERCIAL_ENABLED` back to `true` in
+`src/lib/division-shared.ts` and it all comes back — no rebuild, no
+un-deleting anything.
+
+What changes while it's off: those four routes 307-redirect to `/`
+(`middleware.ts`); `/` always renders domestic content regardless of any
+stale division cookie (`lib/division.ts`); the header/footer/contact/terms
+pages drop every commercial link and the toggle itself; the sitemap,
+default page title, and the OG share card all lead with domestic framing
+instead of "mechanical, electrical & plumbing contractor." Full detail in
+that commit's message (`git log --grep="domestic-only"`).
+
+Found and fixed two real, pre-existing bugs while verifying this: the
+footer's statutory title-block grid showed a solid rust-brown fill in an
+empty cell at the 768px breakpoint (5 items don't divide evenly into 3
+columns — a filler cell now catches it), and the homepage ticker strip cut
+a word off mid-way at 375px with no visual cue it was scrollable (given
+the same scroll-fade treatment already built for the comparison table,
+generalised into a shared `.scroll-fade-x` CSS class with a `--dark`
+variant).
+
 ## Round 3 & 4 (BADMAN protocol) — 4 September 2026
 
 Two more passes since round 2's 68/100. Full detail lives in git history (each
