@@ -9,7 +9,12 @@ import { Counter } from "@/components/ui/counter";
  *
  * Labels flip to the inside of the frame for nodes on the right-hand half,
  * so nothing runs past the viewBox edge — the previous version clipped
- * NUNEATON and very nearly clipped ATHERSTONE at every width.
+ * NUNEATON and very nearly clipped ATHERSTONE at every width. That flip fix
+ * then created a different bug a fresh reviewer caught: Atherstone's y (216)
+ * sat almost exactly on Tamworth's hub row (214), so the hub's own
+ * rightward-reading label and Atherstone's flipped leftward-reading one
+ * overlapped into "TAMWORTHERSTONE". Moved to y 250 — clear of the hub row,
+ * still reads correctly relative to its real-world neighbours.
  *
  * Below ~640px the drawing is decorative and the named-town list carries the
  * information instead: 11px type inside a 720-wide viewBox is unreadable on
@@ -24,7 +29,7 @@ const NODES: { name: string; x: number; y: number }[] = [
   { name: "Tamworth", x: 372, y: 214 }, // hub
   { name: "Polesworth", x: 470, y: 158 },
   { name: "Kingsbury", x: 436, y: 288 },
-  { name: "Atherstone", x: 548, y: 216 },
+  { name: "Atherstone", x: 548, y: 250 },
   { name: "Nuneaton", x: 588, y: 306 },
   { name: "Coleshill", x: 396, y: 348 },
   { name: "Sutton Coldfield", x: 292, y: 372 },
