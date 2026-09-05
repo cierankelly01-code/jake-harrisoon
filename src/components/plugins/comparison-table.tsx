@@ -8,8 +8,16 @@ import { COMPARISON_ROWS } from "@/lib/content/promises";
  * identifiable firm. Every left-hand entry is a commitment published
  * elsewhere on this site, so nothing here is a new promise.
  *
- * Mobile: the table scrolls horizontally inside its own container with a
- * shadow affordance rather than reflowing into unreadable stacked cells.
+ * Mobile: the table scrolls horizontally inside its own container rather
+ * than reflowing into unreadable stacked cells. A fresh reviewer found that
+ * this comment used to claim a "shadow affordance" that was never actually
+ * built — below ~700px there was no visual cue at all that the third
+ * column existed, and the second column's own text sat right at the clip
+ * edge, cut mid-word with nothing to signal "there's more, scroll". Fixed
+ * with a real edge-fade (CSS-only, no JS: a `background-attachment: local`
+ * gradient scrolls with the content and disappears once you've scrolled
+ * past that edge) plus an explicit text hint below `lg`, where the table's
+ * fixed 44rem min-width no longer fits its container.
  */
 export function ComparisonTable() {
   return (
@@ -24,9 +32,12 @@ export function ComparisonTable() {
       <h2 id="comparison-heading" className="font-display mt-4 max-w-[24ch] text-3xl" style={{ color: "var(--ink)" }}>
         The differences that actually show up on the invoice.
       </h2>
+      <p className="mt-2 font-mono-label lg:hidden" style={{ color: "var(--steel)" }}>
+        ← Scroll to see the third column →
+      </p>
 
       <div
-        className="mt-10 overflow-x-auto border"
+        className="table-scroll-fade mt-4 overflow-x-auto border lg:mt-10"
         style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)" }}
       >
         <table className="w-full border-collapse text-left" style={{ minWidth: "44rem" }}>

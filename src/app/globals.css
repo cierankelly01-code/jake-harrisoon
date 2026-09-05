@@ -339,6 +339,36 @@ html {
 }
 
 /* --------------------------------------------------------------------------
+   Scroll-shadow affordance for horizontally-scrollable tables (comparison
+   table, and any future one). Pure CSS, no scroll listener: two
+   `background-attachment: local` gradients scroll WITH the content and
+   naturally disappear once you've scrolled past that edge (there's nothing
+   left for them to fade over), while two `scroll`-attached gradients stay
+   fixed at the true container edges as a constant hint that more content
+   exists. `--surface` in the fade matches the table's own lightest row so
+   the seam is close to invisible on the paper background.
+   -------------------------------------------------------------------------- */
+.table-scroll-fade {
+  background-image:
+    linear-gradient(to right, var(--surface), transparent 24px),
+    linear-gradient(to left, var(--surface), transparent 24px),
+    linear-gradient(to right, color-mix(in srgb, var(--ink) 12%, transparent), transparent 10px),
+    linear-gradient(to left, color-mix(in srgb, var(--ink) 12%, transparent), transparent 10px);
+  background-repeat: no-repeat;
+  background-size:
+    24px 100%,
+    24px 100%,
+    10px 100%,
+    10px 100%;
+  background-position:
+    left,
+    right,
+    left,
+    right;
+  background-attachment: local, local, scroll, scroll;
+}
+
+/* --------------------------------------------------------------------------
    Form controls. Native select / date / file chrome was rendering OS-default
    inside fully art-directed dark forms — three grey browser widgets in the
    middle of the highest-value conversion surface on the site.
