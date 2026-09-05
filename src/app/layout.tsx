@@ -4,31 +4,45 @@ import { SITE_URL } from "@/lib/site";
 import { LocalBusinessSchema } from "@/components/seo/local-business-schema";
 import { fontVariables } from "@/lib/fonts";
 import { getInitialDivision } from "@/lib/division";
+import { COMMERCIAL_ENABLED } from "@/lib/division-shared";
 import { DivisionProvider } from "@/components/division/division-provider";
 import { RevealInit } from "@/components/ui/reveal-init";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { StickyCallBar } from "@/components/plugins/sticky-call-bar";
 
+/**
+ * Default title/description lead with domestic while COMMERCIAL_ENABLED is
+ * false (client request, 5 September 2026 — division-shared.ts): every
+ * page that doesn't set its own metadata, plus every social share, used to
+ * open with "Mechanical, Electrical & Plumbing Contractor" — the
+ * commercial framing — on a site now steering every visitor toward
+ * boiler/heating/plumbing. Flip the flag back and this reverts with it.
+ */
+const SITE_TITLE = COMMERCIAL_ENABLED
+  ? "Marmion Building Services | Mechanical, Electrical & Plumbing Contractor"
+  : "Marmion Building Services | Boiler Installation, Heating & Plumbing";
+const SITE_DESCRIPTION = COMMERCIAL_ENABLED
+  ? "Mechanical contracting, PPM and statutory compliance across the West Midlands, plus domestic plumbing and heating in Tamworth, Lichfield and Sutton Coldfield."
+  : "Gas Safe registered boiler installation, servicing and emergency plumbing in Tamworth, Lichfield, Sutton Coldfield and across the West Midlands.";
+
 export const metadata: Metadata = {
   // Required for canonical + opengraph-image URLs to resolve absolutely.
   // Reads NEXT_PUBLIC_SITE_URL — see lib/site.ts.
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Marmion Building Services | Mechanical, Electrical & Plumbing Contractor",
+    default: SITE_TITLE,
     template: "%s | Marmion Building Services",
   },
-  description:
-    "Mechanical contracting, PPM and statutory compliance across the West Midlands, plus domestic plumbing and heating in Tamworth, Lichfield and Sutton Coldfield.",
+  description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_GB",
     siteName: "Marmion Building Services",
     url: "/",
-    title: "Marmion Building Services | Mechanical, Electrical & Plumbing Contractor",
-    description:
-      "Mechanical contracting, PPM and statutory compliance across the West Midlands, plus domestic plumbing and heating in Tamworth, Lichfield and Sutton Coldfield.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     // The image itself comes from app/opengraph-image.tsx automatically.
   },
   twitter: { card: "summary_large_image" },

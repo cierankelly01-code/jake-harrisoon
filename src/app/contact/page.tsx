@@ -3,11 +3,13 @@ import Link from "next/link";
 import { business } from "@/lib/content/business";
 import { PlaceholderMarker } from "@/components/ui/placeholder";
 import { HAS_PUBLISHED_PRICES } from "@/lib/content/domestic-prices";
+import { COMMERCIAL_ENABLED } from "@/lib/division-shared";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description:
-    "How to reach Marmion Building Services — instant domestic boiler quotes, commercial tender and PQQ enquiries, and coverage across Tamworth, Lichfield, Sutton Coldfield and the wider West Midlands.",
+  description: COMMERCIAL_ENABLED
+    ? "How to reach Marmion Building Services — instant domestic boiler quotes, commercial tender and PQQ enquiries, and coverage across Tamworth, Lichfield, Sutton Coldfield and the wider West Midlands."
+    : "How to reach Marmion Building Services — instant domestic boiler quotes and coverage across Tamworth, Lichfield, Sutton Coldfield and the wider West Midlands.",
 };
 
 /**
@@ -26,6 +28,12 @@ export const metadata: Metadata = {
  * action is built (Phase 2), it drops into the DIRECT LINES section below.
  */
 
+/**
+ * The commercial route (/tenders) drops out while COMMERCIAL_ENABLED is
+ * false (division-shared.ts) — middleware.ts redirects that URL to `/`, so
+ * linking to it here would send someone straight back to the homepage
+ * instead of the tender form they clicked for.
+ */
 const ROUTES = [
   {
     index: "01",
@@ -35,14 +43,18 @@ const ROUTES = [
     body: "Answer a few questions about your home and your current system and you get a real, itemised price in about two minutes — no home visit needed first, no salesman on the sofa.",
     cta: "Start the quote",
   },
-  {
-    index: "02",
-    eyebrow: "Commercial",
-    href: "/tenders",
-    title: "Send us an ITT, spec or PQQ",
-    body: "Upload the tender documents and they go straight to both directors, flagged by deadline. Completed PQQ documentation comes back within 24 hours.",
-    cta: "Open the tender form",
-  },
+  ...(COMMERCIAL_ENABLED
+    ? [
+        {
+          index: "02",
+          eyebrow: "Commercial",
+          href: "/tenders",
+          title: "Send us an ITT, spec or PQQ",
+          body: "Upload the tender documents and they go straight to both directors, flagged by deadline. Completed PQQ documentation comes back within 24 hours.",
+          cta: "Open the tender form",
+        },
+      ]
+    : []),
 ];
 
 const SECONDARY = [
@@ -54,7 +66,9 @@ const SECONDARY = [
       ? "Fixed prices for straightforward domestic jobs."
       : "The four rules every job is priced by, and why the number does not move.",
   },
-  { href: "/capability", label: "Capability statement", note: "Scope, coverage and credentials as a downloadable PDF." },
+  ...(COMMERCIAL_ENABLED
+    ? [{ href: "/capability", label: "Capability statement", note: "Scope, coverage and credentials as a downloadable PDF." }]
+    : []),
 ];
 
 /** Direct contact routes. Rendered only once a value exists. */
@@ -62,7 +76,9 @@ const DIRECT_LINES = [
   { label: "Telephone", value: business.phoneMain, factLabel: "MAIN PHONE" },
   { label: "Out of hours", value: business.phoneOutOfHours, factLabel: "OUT-OF-HOURS PHONE" },
   { label: "General enquiries", value: business.emailGeneral, factLabel: "GENERAL EMAIL" },
-  { label: "Tenders & PQQ", value: business.emailTenders, factLabel: "TENDERS EMAIL" },
+  ...(COMMERCIAL_ENABLED
+    ? [{ label: "Tenders & PQQ", value: business.emailTenders, factLabel: "TENDERS EMAIL" }]
+    : []),
   { label: "Registered office", value: business.registeredOffice, factLabel: "REGISTERED OFFICE" },
 ] as const;
 
@@ -81,8 +97,9 @@ export default function ContactPage() {
           Tell us what needs doing.
         </h1>
         <p className="mt-5 max-w-2xl text-lg" style={{ color: "var(--steel)" }}>
-          Two routes below get you a real answer without waiting for anyone to pick up the
-          phone — one for homes, one for buildings. Both land with the directors directly.
+          {COMMERCIAL_ENABLED
+            ? "Two routes below get you a real answer without waiting for anyone to pick up the phone — one for homes, one for buildings. Both land with the directors directly."
+            : "Get a real answer below without waiting for anyone to pick up the phone. It lands with the directors directly."}
         </p>
       </section>
 
@@ -91,7 +108,7 @@ export default function ContactPage() {
         className="mx-auto max-w-5xl px-6"
         style={{ paddingBottom: "var(--space-section-tight)" }}
       >
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className={`grid gap-6 ${COMMERCIAL_ENABLED ? "md:grid-cols-2" : "md:max-w-md"}`}>
           {ROUTES.map((route) => (
             <Link
               key={route.href}
@@ -195,12 +212,24 @@ export default function ContactPage() {
             ))}
           </p>
           <p className="mt-4 max-w-2xl text-sm" style={{ color: "var(--steel-dim)" }}>
-            Outside that list? Commercial contracts travel further than domestic call-outs — send
-            the details through the{" "}
-            <Link href="/tenders" className="link-draw" style={{ color: "var(--flame-glow)" }}>
-              tender form
-            </Link>{" "}
-            and we&apos;ll tell you honestly whether we can cover it.
+            {COMMERCIAL_ENABLED ? (
+              <>
+                Outside that list? Commercial contracts travel further than domestic call-outs —
+                send the details through the{" "}
+                <Link href="/tenders" className="link-draw" style={{ color: "var(--flame-glow)" }}>
+                  tender form
+                </Link>{" "}
+                and we&apos;ll tell you honestly whether we can cover it.
+              </>
+            ) : (
+              <>
+                Outside that list? Start the{" "}
+                <Link href="/boiler-quote" className="link-draw" style={{ color: "var(--flame-glow)" }}>
+                  instant quote
+                </Link>{" "}
+                anyway — it will tell you honestly whether we can cover it.
+              </>
+            )}
           </p>
         </div>
       </section>

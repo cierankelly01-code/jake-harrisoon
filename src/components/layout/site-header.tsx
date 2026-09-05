@@ -8,6 +8,7 @@ import { DivisionToggle } from "@/components/division/division-toggle";
 import { useDivision } from "@/components/division/division-provider";
 import { emailLink, phoneLink } from "@/lib/content/contact-links";
 import { HAS_PUBLISHED_PRICES } from "@/lib/content/domestic-prices";
+import { COMMERCIAL_ENABLED } from "@/lib/division-shared";
 
 /**
  * The nav must not promise something the page cannot deliver. While
@@ -40,13 +41,21 @@ const NAV_BY_DIVISION = {
   ],
 } as const;
 
-/** Everything, for the mobile drawer — one place, nothing hidden. */
+/**
+ * Everything, for the mobile drawer — one place, nothing hidden. Capability
+ * and Tenders drop out while COMMERCIAL_ENABLED is false (division-shared.ts)
+ * rather than linking to routes middleware.ts redirects away from `/`.
+ */
 const ALL_LINKS = [
   { href: "/boiler-quote", label: "Instant Quote" },
   { href: "/prices", label: PRICES_LABEL },
   { href: "/care-plans", label: "Care Plans" },
-  { href: "/capability", label: "Capability" },
-  { href: "/tenders", label: "Tenders & PQQ" },
+  ...(COMMERCIAL_ENABLED
+    ? [
+        { href: "/capability", label: "Capability" },
+        { href: "/tenders", label: "Tenders & PQQ" },
+      ]
+    : []),
   { href: "/contact", label: "Contact" },
 ];
 
@@ -260,9 +269,11 @@ export function SiteHeader() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:block">
-              <DivisionToggle tone="dark" />
-            </div>
+            {COMMERCIAL_ENABLED && (
+              <div className="hidden sm:block">
+                <DivisionToggle tone="dark" />
+              </div>
+            )}
             <button
               ref={menuButtonRef}
               type="button"
@@ -302,23 +313,30 @@ export function SiteHeader() {
 
       {/* Phone-width audience switch. Below 640px there is no room for this in
           the action row beside the wordmark and the menu trigger, so it gets
-          its own full-width strip rather than being buried in the drawer. */}
-      <div
-        className="sm:hidden"
-        style={{
-          background: "var(--surface-dark)",
-          borderBottom: "1px solid var(--border-hairline-dark)",
-        }}
-      >
-        <div className="px-5 py-1.5">
-          <DivisionToggle tone="dark" block />
+          its own full-width strip rather than being buried in the drawer.
+          Gone entirely while COMMERCIAL_ENABLED is false — a toggle with
+          only one live position isn't a control, and the drawer's top
+          offset below drops the extra 2.75rem it exists to leave room for. */}
+      {COMMERCIAL_ENABLED && (
+        <div
+          className="sm:hidden"
+          style={{
+            background: "var(--surface-dark)",
+            borderBottom: "1px solid var(--border-hairline-dark)",
+          }}
+        >
+          <div className="px-5 py-1.5">
+            <DivisionToggle tone="dark" block />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile drawer */}
       {menuOpen && (
         <div
-          className="fixed inset-0 top-[calc(var(--header-height)+2.75rem)] z-40 sm:top-[var(--header-height)] lg:hidden"
+          className={`fixed inset-0 z-40 lg:hidden ${
+            COMMERCIAL_ENABLED ? "top-[calc(var(--header-height)+2.75rem)] sm:top-[var(--header-height)]" : "top-[var(--header-height)]"
+          }`}
           style={{ background: "color-mix(in srgb, var(--ink) 70%, transparent)" }}
           onClick={() => setMenuOpen(false)}
         >
@@ -368,12 +386,14 @@ export function SiteHeader() {
               {/* Hidden below sm: at those widths the same control is already
                   on screen in the header strip above the drawer, and two live
                   toggles for one piece of state reads as a bug. */}
-              <div className="mt-8 hidden flex-col gap-4 sm:flex">
-                <span className="font-mono-label" style={{ color: "var(--steel-dim)" }}>
-                  Division
-                </span>
-                <DivisionToggle tone="dark" />
-              </div>
+              {COMMERCIAL_ENABLED && (
+                <div className="mt-8 hidden flex-col gap-4 sm:flex">
+                  <span className="font-mono-label" style={{ color: "var(--steel-dim)" }}>
+                    Division
+                  </span>
+                  <DivisionToggle tone="dark" />
+                </div>
+              )}
 
               <Link href={phone.href} className="btn btn--primary mt-8">
                 {phone.isDirect ? `Call ${phone.label}` : "Request a callback"}

@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { business } from "@/lib/content/business";
+import { COMMERCIAL_ENABLED } from "@/lib/division-shared";
 
 /**
  * The share card. Treated as an ad, not a screenshot of the page — a shrunk
@@ -31,8 +32,9 @@ import { business } from "@/lib/content/business";
  * still traced into the deployed bundle.
  */
 
-export const alt =
-  "Marmion Building Services — mechanical, electrical and plumbing contractor, Tamworth, Staffordshire";
+export const alt = COMMERCIAL_ENABLED
+  ? "Marmion Building Services — mechanical, electrical and plumbing contractor, Tamworth, Staffordshire"
+  : "Marmion Building Services — boiler installation, heating and plumbing, Tamworth, Staffordshire";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -130,7 +132,9 @@ export default async function OpengraphImage() {
             color: COPPER_BRIGHT,
           }}
         >
-          <div style={{ display: "flex" }}>MECHANICAL · ELECTRICAL · PLUMBING</div>
+          <div style={{ display: "flex" }}>
+            {COMMERCIAL_ENABLED ? "MECHANICAL · ELECTRICAL · PLUMBING" : "BOILERS · HEATING · PLUMBING"}
+          </div>
           <div style={{ display: "flex", color: STEEL_DIM }}>TAMWORTH · STAFFORDSHIRE</div>
         </div>
 
@@ -172,7 +176,9 @@ export default async function OpengraphImage() {
           }}
         >
           <div style={{ display: "flex" }}>{coverageLine}</div>
-          <div style={{ display: "flex", color: COPPER_BRIGHT }}>COMMERCIAL / DOMESTIC</div>
+          <div style={{ display: "flex", color: COPPER_BRIGHT }}>
+            {COMMERCIAL_ENABLED ? "COMMERCIAL / DOMESTIC" : "DOMESTIC"}
+          </div>
         </div>
       </div>
     ),

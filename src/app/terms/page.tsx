@@ -3,6 +3,7 @@ import Link from "next/link";
 import { business } from "@/lib/content/business";
 import { Placeholder } from "@/components/ui/placeholder";
 import { LegalShell, LegalSection, LegalList, Term } from "@/components/legal/legal-shell";
+import { COMMERCIAL_ENABLED } from "@/lib/division-shared";
 
 export const metadata: Metadata = {
   title: "Terms of Use",
@@ -199,10 +200,19 @@ export default function TermsPage() {
       {/* 06 */}
       <LegalSection id="tenders" index={6} title="Tender and PQQ enquiries">
         <p>
+          {/* /tenders redirects to `/` while the commercial division is
+              switched off (division-shared.ts) — a live link here would
+              bounce a reader straight to the homepage mid-clause. The
+              clause itself stays: it's a real legal process even while the
+              nav to reach it is off. */}
           Submitting an ITT, specification or PQQ through the{" "}
-          <Link href="/tenders" className="link-draw" style={{ color: "var(--flame)" }}>
-            tender form
-          </Link>{" "}
+          {COMMERCIAL_ENABLED ? (
+            <Link href="/tenders" className="link-draw" style={{ color: "var(--flame)" }}>
+              tender form
+            </Link>
+          ) : (
+            "tender form"
+          )}{" "}
           places no obligation on either side. We may decline to tender, and you are under no
           obligation to appoint us.
         </p>

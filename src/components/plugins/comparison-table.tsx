@@ -37,7 +37,7 @@ export function ComparisonTable() {
       </p>
 
       <div
-        className="table-scroll-fade mt-4 overflow-x-auto border lg:mt-10"
+        className="scroll-fade-x mt-4 overflow-x-auto border lg:mt-10"
         style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)" }}
       >
         <table className="w-full border-collapse text-left" style={{ minWidth: "44rem" }}>

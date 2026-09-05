@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
+import { COMMERCIAL_ENABLED, COMMERCIAL_GATED_ROUTES } from "@/lib/division-shared";
 
 /**
  * Every route that exists in this build. Nothing speculative is listed —
@@ -19,13 +20,15 @@ type Entry = {
 };
 
 const ROUTES: Entry[] = [
-  // /commercial and /domestic are the real, indexable homepages (see
-  // DESIGN_SYSTEM.md §10) — `/` renders the same content cookie-driven and
-  // sets its own canonical to whichever of these it resolved to, so it is
-  // deliberately not listed here at a competing priority.
+  // With COMMERCIAL_ENABLED, /commercial and /domestic are the real,
+  // indexable homepages (see DESIGN_SYSTEM.md §10) and `/` sets its own
+  // canonical to whichever it resolved to, so it sits below them here.
+  // While it's off (client request, 5 September 2026 — division-shared.ts)
+  // those routes redirect to `/`, so `/` is the one and only homepage and
+  // takes the top priority instead.
   { path: "/commercial", priority: 1.0, changeFrequency: "weekly" },
   { path: "/domestic", priority: 1.0, changeFrequency: "weekly" },
-  { path: "/", priority: 0.5, changeFrequency: "weekly" },
+  { path: "/", priority: COMMERCIAL_ENABLED ? 0.5 : 1.0, changeFrequency: "weekly" },
   // The two live conversion paths — these earn the highest non-home priority.
   { path: "/boiler-quote", priority: 0.9, changeFrequency: "monthly" },
   { path: "/emergency", priority: 0.9, changeFrequency: "monthly" },
@@ -41,10 +44,16 @@ const ROUTES: Entry[] = [
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  return ROUTES.map(({ path, priority, changeFrequency }) => ({
-    url: `${SITE_URL}${path === "/" ? "" : path}`,
-    lastModified,
-    changeFrequency,
-    priority,
-  }));
+  return ROUTES
+    // Drop every route middleware.ts redirects away from `/` — a sitemap
+    // entry for a URL that 307s elsewhere just earns a Search Console
+    // warning, and this list comes back automatically the moment
+    // COMMERCIAL_ENABLED flips true again.
+    .filter(({ path }) => COMMERCIAL_ENABLED || !COMMERCIAL_GATED_ROUTES.includes(path))
+    .map(({ path, priority, changeFrequency }) => ({
+      url: `${SITE_URL}${path === "/" ? "" : path}`,
+      lastModified,
+      changeFrequency,
+      priority,
+    }));
 }

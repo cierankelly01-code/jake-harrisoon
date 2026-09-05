@@ -339,21 +339,27 @@ html {
 }
 
 /* --------------------------------------------------------------------------
-   Scroll-shadow affordance for horizontally-scrollable tables (comparison
-   table, and any future one). Pure CSS, no scroll listener: two
-   `background-attachment: local` gradients scroll WITH the content and
-   naturally disappear once you've scrolled past that edge (there's nothing
-   left for them to fade over), while two `scroll`-attached gradients stay
-   fixed at the true container edges as a constant hint that more content
-   exists. `--surface` in the fade matches the table's own lightest row so
-   the seam is close to invisible on the paper background.
+   Scroll-shadow affordance for horizontally-scrollable content (the
+   comparison table, the sectors/services ticker strip, any future one).
+   Pure CSS, no scroll listener: two `background-attachment: local`
+   gradients scroll WITH the content and naturally disappear once you've
+   scrolled past that edge (there's nothing left for them to fade over),
+   while two `scroll`-attached gradients stay fixed at the true container
+   edges as a constant hint that more content exists.
+
+   --scroll-fade / --scroll-edge are custom properties, not hardcoded
+   colours, because this needs to work on both a light table (fade to
+   --surface, a dark edge tint) and the dark ticker strip (fade to --ink, a
+   light edge tint) — .scroll-fade-x--dark overrides both for that case.
    -------------------------------------------------------------------------- */
-.table-scroll-fade {
+.scroll-fade-x {
+  --scroll-fade: var(--surface);
+  --scroll-edge: color-mix(in srgb, var(--ink) 12%, transparent);
   background-image:
-    linear-gradient(to right, var(--surface), transparent 24px),
-    linear-gradient(to left, var(--surface), transparent 24px),
-    linear-gradient(to right, color-mix(in srgb, var(--ink) 12%, transparent), transparent 10px),
-    linear-gradient(to left, color-mix(in srgb, var(--ink) 12%, transparent), transparent 10px);
+    linear-gradient(to right, var(--scroll-fade), transparent 24px),
+    linear-gradient(to left, var(--scroll-fade), transparent 24px),
+    linear-gradient(to right, var(--scroll-edge), transparent 10px),
+    linear-gradient(to left, var(--scroll-edge), transparent 10px);
   background-repeat: no-repeat;
   background-size:
     24px 100%,
@@ -366,6 +372,10 @@ html {
     left,
     right;
   background-attachment: local, local, scroll, scroll;
+}
+.scroll-fade-x--dark {
+  --scroll-fade: var(--ink);
+  --scroll-edge: color-mix(in srgb, var(--paper) 14%, transparent);
 }
 
 /* --------------------------------------------------------------------------

@@ -49,6 +49,12 @@ export const DOMESTIC_WORK = [
  * page. A horizontal `overflow-x-auto` strip keeps the section a fixed,
  * short height at every width — the same "wide content scrolls in its own
  * lane" rule the /privacy table already follows.
+ *
+ * `.scroll-fade-x--dark` on the list: without it, a static screenshot at
+ * 375px shows item 2 cut off mid-word ("02 COMBI SW") with no cue it
+ * continues — a fresh reviewer read that as a broken fragment, not a
+ * scrollable strip. Same fade/edge-hint technique as the comparison
+ * table, just the dark-background variant.
  */
 export function SectorsServed() {
   const { division } = useDivision();
@@ -65,7 +71,7 @@ export function SectorsServed() {
       <h2 id="ticker-heading" className="sr-only">
         {label}
       </h2>
-      <ul className="mx-auto flex max-w-[100rem] flex-nowrap overflow-x-auto">
+      <ul className="scroll-fade-x scroll-fade-x--dark mx-auto flex max-w-[100rem] flex-nowrap overflow-x-auto">
         {items.map((item, index) => (
           <li
             key={item}

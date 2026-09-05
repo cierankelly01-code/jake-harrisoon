@@ -2,6 +2,7 @@ import Link from "next/link";
 import { business } from "@/lib/content/business";
 import { PlaceholderMarker } from "@/components/ui/placeholder";
 import { phoneLink, emailLink } from "@/lib/content/contact-links";
+import { COMMERCIAL_ENABLED } from "@/lib/division-shared";
 
 /**
  * The footer as a designed destination rather than a sitemap dump: the two
@@ -30,8 +31,12 @@ import { phoneLink, emailLink } from "@/lib/content/contact-links";
  * gap is doing exactly the job it should.
  */
 const SERVICE_LINKS = [
-  { label: "Capability statement", href: "/capability" },
-  { label: "Tenders & PQQ", href: "/tenders" },
+  ...(COMMERCIAL_ENABLED
+    ? [
+        { label: "Capability statement", href: "/capability" },
+        { label: "Tenders & PQQ", href: "/tenders" },
+      ]
+    : []),
   { label: "Instant boiler quote", href: "/boiler-quote" },
   { label: "Care plans", href: "/care-plans" },
   { label: "How we price", href: "/prices" },
@@ -64,12 +69,14 @@ export function SiteFooter() {
 
   return (
     <footer className="grain relative" style={{ background: "var(--ink)", color: "var(--paper)" }}>
-      {/* Restate the two routes that convert, once, at the end. */}
+      {/* Restate the route(s) that convert, once, at the end. One column
+          while COMMERCIAL_ENABLED is false — a two-column band with an
+          empty half would look like a mistake, not a considered layout. */}
       <div className="relative z-10 border-b" style={{ borderColor: "var(--border-hairline-dark)" }}>
-        <div className="mx-auto grid max-w-[100rem] gap-px px-6 py-0 md:grid-cols-2">
+        <div className={`mx-auto grid max-w-[100rem] gap-px px-6 py-0 ${COMMERCIAL_ENABLED ? "md:grid-cols-2" : ""}`}>
           <Link
             href="/boiler-quote"
-            className="footer-cta group flex items-center justify-between gap-6 py-10 md:pr-10"
+            className={`footer-cta group flex items-center justify-between gap-6 py-10 ${COMMERCIAL_ENABLED ? "md:pr-10" : ""}`}
           >
             <span>
               <span className="font-mono-label" style={{ color: "var(--copper-bright)" }}>
@@ -79,19 +86,21 @@ export function SiteFooter() {
             </span>
             <FooterArrow />
           </Link>
-          <Link
-            href="/tenders"
-            className="footer-cta group flex items-center justify-between gap-6 border-t py-10 md:border-l md:border-t-0 md:pl-10"
-            style={{ borderColor: "var(--border-hairline-dark)" }}
-          >
-            <span>
-              <span className="font-mono-label" style={{ color: "var(--copper-bright)" }}>
-                Commercial
+          {COMMERCIAL_ENABLED && (
+            <Link
+              href="/tenders"
+              className="footer-cta group flex items-center justify-between gap-6 border-t py-10 md:border-l md:border-t-0 md:pl-10"
+              style={{ borderColor: "var(--border-hairline-dark)" }}
+            >
+              <span>
+                <span className="font-mono-label" style={{ color: "var(--copper-bright)" }}>
+                  Commercial
+                </span>
+                <span className="font-display mt-2 block text-2xl">Submit a tender enquiry</span>
               </span>
-              <span className="font-display mt-2 block text-2xl">Submit a tender enquiry</span>
-            </span>
-            <FooterArrow />
-          </Link>
+              <FooterArrow />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -187,6 +196,16 @@ export function SiteFooter() {
               </span>
             </div>
           ))}
+          {/* Filler cell. The grid's own background is the hairline colour
+              (that's what draws the 1px dividers through gap-px) — with 5
+              real cells and 3 columns, the second row is short one cell,
+              and that hairline colour showed straight through as a solid
+              rust-brown block instead of --ink. A fresh reviewer caught
+              this at exactly the breakpoint it happens: 3 columns from
+              `sm`, 5 from `lg`, so 5 items divide evenly at `lg` (no
+              filler needed, hidden) but leave a 1-cell remainder between
+              `sm` and `lg` (filler visible only in that range). */}
+          <div className="hidden sm:block lg:hidden" style={{ background: "var(--ink)" }} aria-hidden="true" />
         </div>
       </div>
 
