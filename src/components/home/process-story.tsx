@@ -207,8 +207,19 @@ export function ProcessStory() {
               )}
             </div>
 
-            {/* Schematic */}
-            <div className="p-6 lg:col-span-7 lg:p-8" style={{ background: "var(--slate-deep)" }}>
+            {/* Schematic. Centered, not top-aligned: the SVG keeps a fixed
+                720:460 aspect ratio, but the four stacked stage blocks
+                beside it (not-pinned/reduced-motion layout) run
+                considerably taller than that at desktop widths — a fresh
+                reviewer found a large dead rectangle below the diagram
+                where the grid cell stretched to match the text column's
+                height. Centering distributes that gap evenly above and
+                below instead of leaving it as one block underneath, which
+                reads as composed rather than broken. */}
+            <div
+              className="flex items-center justify-center p-6 lg:col-span-7 lg:p-8"
+              style={{ background: "var(--slate-deep)" }}
+            >
               <SystemSchematic step={step} commercial={isCommercial} />
             </div>
           </div>
