@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useDivision } from "@/components/division/division-provider";
 import { business } from "@/lib/content/business";
@@ -57,6 +58,45 @@ const COPY = {
     reassurance: "Eight questions, about two minutes · No callout fee on quoted work · No obligation",
   },
 } as const;
+
+/**
+ * Keeps "word —" together as one unbreakable unit so an em dash can never
+ * start a line on its own — confirmed the orphan by screenshot on the
+ * commercial headline at 375px ("certificate" ending one line, "— one"
+ * starting the next). The first attempt guarded "— one" (dash attached to
+ * the WORD AFTER it) instead — wrong pairing: that only stops "one" being
+ * split from the dash, it does nothing to stop the browser breaking the
+ * line immediately before the guarded unit, which is exactly what was
+ * happening. Guarding "certificate —" (dash attached to the word BEFORE
+ * it) is what actually keeps the dash trailing the line above rather than
+ * leading the line below. A non-breaking space does NOT work for either
+ * pairing: body's overflow-wrap:anywhere permits a break at an nbsp too,
+ * once a line is judged too tight. A white-space:nowrap span is a
+ * different mechanism — it removes the break opportunity from the
+ * line-filling algorithm entirely rather than hiding it behind an
+ * invisible character — and does hold. No-op for headlines without an em
+ * dash (the domestic copy).
+ */
+function renderHeadline(headline: string): ReactNode {
+  // String slicing, not a regex: a greedy (.*) before \S+ backtracks to the
+  // minimum the rest of the pattern needs, which is one character — the
+  // first version of this function shipped matching "e —" instead of
+  // "certificate —" for exactly that reason, silently guarding the wrong
+  // three characters. Explicit indices don't have that failure mode.
+  const dashAt = headline.indexOf(" — ");
+  if (dashAt === -1) return headline;
+  const beforeDash = headline.slice(0, dashAt);
+  const afterDash = headline.slice(dashAt + 3);
+  const lastSpaceAt = beforeDash.lastIndexOf(" ");
+  const before = beforeDash.slice(0, lastSpaceAt + 1);
+  const lastWord = beforeDash.slice(lastSpaceAt + 1);
+  return (
+    <>
+      {before}
+      <span style={{ whiteSpace: "nowrap" }}>{lastWord} —</span> {afterDash}
+    </>
+  );
+}
 
 export function Hero() {
   const { division } = useDivision();
@@ -137,9 +177,19 @@ export function Hero() {
                   the headline comment in COPY above for what actually did. */}
               <h1
                 className="font-display font-display-xl mt-4 sm:mt-6"
-                style={{ color: fg, fontSize: "var(--text-hero)", textWrap: "pretty" }}
+                // overflowWrap normal: body's overflow-wrap:anywhere is a
+                // last-resort rule that, per spec, can still insert a break
+                // inside a white-space:nowrap span if it decides a line is
+                // otherwise too tight — which is exactly what kept undoing
+                // renderHeadline's guard below, three attempts in a row,
+                // until this line existed. Safe to turn off here specifically:
+                // every word in both headlines is short enough to wrap
+                // normally without it; "anywhere" exists site-wide for
+                // genuinely unbreakable strings (long postcodes, reference
+                // numbers), not natural-language headline text.
+                style={{ color: fg, fontSize: "var(--text-hero)", textWrap: "pretty", overflowWrap: "normal" }}
               >
-                {copy.headline}
+                {renderHeadline(copy.headline)}
               </h1>
               <p
                 className="mt-4 max-w-[46ch] sm:mt-7"
