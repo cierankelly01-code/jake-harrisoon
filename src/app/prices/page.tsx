@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DOMESTIC_PRICES, HAS_PUBLISHED_PRICES } from "@/lib/content/domestic-prices";
-import { FactOrPlaceholder, PlaceholderMarker } from "@/components/ui/placeholder";
+import { FactOrPlaceholder } from "@/components/ui/placeholder";
 
 export const metadata: Metadata = {
   title: HAS_PUBLISHED_PRICES ? "Prices" : "How we price",
@@ -131,9 +131,9 @@ export default function PricesPage() {
               </h2>
               {!HAS_PUBLISHED_PRICES && (
                 <p className="mt-5 max-w-[40ch] text-base" style={{ color: "var(--steel)" }}>
-                  These are the jobs we will publish a flat price for. We would rather leave the
-                  column empty than put up a number we might have to argue with you about later —
-                  it goes live once both directors have signed it off.
+                  These are the jobs we will publish a flat price for. We would rather show that
+                  than put up a number we might have to argue with you about later — each one goes
+                  live once both directors have signed it off.
                 </p>
               )}
             </div>
@@ -143,7 +143,7 @@ export default function PricesPage() {
                 className="overflow-x-auto border"
                 style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)" }}
               >
-                <table className="w-full border-collapse text-left text-sm" style={HAS_PUBLISHED_PRICES ? { minWidth: "32rem" } : undefined}>
+                <table className="w-full border-collapse text-left text-sm" style={{ minWidth: "32rem" }}>
                   <caption className="sr-only">
                     {HAS_PUBLISHED_PRICES
                       ? "Published prices for straightforward domestic jobs"
@@ -154,15 +154,22 @@ export default function PricesPage() {
                       <th scope="col" className="font-mono-label px-5 py-4" style={{ color: "var(--steel-dim)" }}>
                         Job
                       </th>
-                      {HAS_PUBLISHED_PRICES && (
-                        <th
-                          scope="col"
-                          className="font-mono-label px-5 py-4 text-right"
-                          style={{ color: "var(--steel-dim)" }}
-                        >
-                          Price
-                        </th>
-                      )}
+                      {/* Always rendered, published or not. Omitting this
+                          column entirely (the previous fix for "a column of
+                          eight amber triangles is not useful") swung too far
+                          the other way — a fresh reviewer read the resulting
+                          single-column table, with a dead band of empty
+                          space to its right, as a broken layout rather than
+                          a deliberate "coming soon" state. A quiet em dash
+                          per row (below) reads as pending, not broken,
+                          without the loud amber-chip column this replaced. */}
+                      <th
+                        scope="col"
+                        className="font-mono-label px-5 py-4 text-right"
+                        style={{ color: "var(--steel-dim)" }}
+                      >
+                        Price
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -190,33 +197,41 @@ export default function PricesPage() {
                             </span>
                           )}
                         </th>
-                        {HAS_PUBLISHED_PRICES ? (
-                          <td
-                            className="font-mono tnum whitespace-nowrap px-5 py-4 text-right align-top"
-                            style={{ color: "var(--ink)" }}
-                          >
-                            <FactOrPlaceholder
-                              value={line.price}
-                              label={`PRICE — ${line.job.toUpperCase()}`}
-                              missing="chip"
-                              compact
-                            />
-                          </td>
-                        ) : null}
+                        <td
+                          className="font-mono tnum whitespace-nowrap px-5 py-4 text-right align-top"
+                          style={{ color: "var(--ink)" }}
+                        >
+                          <FactOrPlaceholder
+                            value={line.price}
+                            label={`PRICE — ${line.job.toUpperCase()}`}
+                            // Nothing is published yet sitewide (this whole
+                            // page is in its pre-launch state) — a quiet dash
+                            // per row, not the amber "TBC" chip: eight chips
+                            // down one column reads as unfinished, where a
+                            // dash reads as "priced individually" the way a
+                            // trade price list often does. Once the first
+                            // real figure lands, HAS_PUBLISHED_PRICES flips
+                            // true and any *still* individually-unconfirmed
+                            // row (mixed state) falls back to the louder chip
+                            // instead, correctly flagging it as an outlier
+                            // rather than the page's normal state.
+                            missing={HAS_PUBLISHED_PRICES ? "chip" : "fallback"}
+                            fallback={<span style={{ color: "var(--steel)" }}>—</span>}
+                            compact
+                          />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              {/* Audit trail for the unpublished figures. Kept outside the
-                  table because a <span> is not a valid child of <tr>. */}
-              {!HAS_PUBLISHED_PRICES &&
-                DOMESTIC_PRICES.map((line) => (
-                  <PlaceholderMarker
-                    key={line.job}
-                    label={`PRICE — ${line.job.toUpperCase()}`}
-                  />
-                ))}
+              {/* No separate audit-trail block needed here any more: every
+                  row's <td> now always renders (see above), and
+                  FactOrPlaceholder's own "fallback" mode already renders a
+                  PlaceholderMarker inside it — a <span> is a valid child of
+                  a <td>, just not of the <tr> this used to sit in when the
+                  whole column was conditionally omitted. A separate list
+                  here now would just double up every marker. */}
               <p className="font-mono-label mt-4" style={{ color: "var(--steel)" }}>
                 All prices include VAT · No callout fee on quoted work
               </p>
