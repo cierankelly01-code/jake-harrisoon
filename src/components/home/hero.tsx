@@ -21,7 +21,22 @@ import { track } from "@/lib/analytics";
 const COPY = {
   commercial: {
     eyebrow: "Mechanical · PPM · Statutory compliance",
-    headline: "One contract. Every statutory certificate. One renewal date.",
+    // Was three short sentences ("One contract. Every statutory
+    // certificate. One renewal date.") — a fresh reviewer found that at
+    // 375px this wrapped to a 6-line staircase with "Every" and the second
+    // "One" stranded alone on their own line, where the two-sentence
+    // domestic headline below wrapped cleanly. Two things fixed it, and
+    // neither alone was enough: joining the last two clauses with an em
+    // dash removes one sentence break, and the headline cell's own mobile
+    // padding (below, in Hero()) was stacking on top of the section's,
+    // losing 23% of the viewport to padding before any text could render.
+    // (text-wrap:pretty and a non-breaking space between "Every" and
+    // "statutory" were tried first and did nothing — overflow-wrap:anywhere
+    // on body permits a break anywhere, nbsp included, once a line is
+    // otherwise too tight — so both approaches were dropped in favour of
+    // these two.) Verified by screenshot: 6 lines to 5, no isolated
+    // single-word lines.
+    headline: "One contract. Every statutory certificate — one renewal date.",
     sub: "PPM and reactive cover from a single site to a multi-site portfolio, across the West Midlands. Send us the ITT and completed PQQ documentation comes back within 24 hours.",
     primaryCta: { label: "Get the capability statement", href: "/capability" },
     secondaryCta: { label: "Submit a tender enquiry", href: "/tenders" },
@@ -97,7 +112,15 @@ export function Hero() {
         <div className="grid lg:grid-cols-12">
           {/* Headline cell */}
           <div
-            className="flex flex-col justify-between gap-6 px-5 py-6 sm:gap-8 sm:p-8 lg:col-span-8 lg:p-10"
+            // px-0 below sm, not px-5: this cell's own horizontal padding
+            // stacked on top of the section's own px-6, so at 375px the
+            // headline column was losing 88px (23% of the viewport) to
+            // padding before any text could render — see the headline
+            // comment in COPY above for the wrap bug this caused. The
+            // section's px-6 alone is enough edge spacing at this width;
+            // sm:p-8/lg:p-10 restore the cell's own padding as soon as
+            // there's room to spare.
+            className="flex flex-col justify-between gap-6 px-0 py-6 sm:gap-8 sm:p-8 lg:col-span-8 lg:p-10"
             style={{ borderTop: `1px solid ${rule}`, borderBottom: `1px solid ${rule}` }}
           >
             <div>
@@ -106,10 +129,15 @@ export function Hero() {
               </span>
               {/* --text-hero, not --text-5xl: the 44px floor ran this to eight
                   lines on a 375px phone and pushed the primary CTA off the
-                  fold. Sub copy is clamped too so hero + CTA clear 812px. */}
+                  fold. Sub copy is clamped too so hero + CTA clear 812px.
+                  textWrap "pretty" (over .font-display's default "balance")
+                  avoids a lone short word stranded alone on the final line —
+                  a real improvement on its own, but not what fixed the
+                  6-line commercial-headline wrap a fresh reviewer found; see
+                  the headline comment in COPY above for what actually did. */}
               <h1
                 className="font-display font-display-xl mt-4 sm:mt-6"
-                style={{ color: fg, fontSize: "var(--text-hero)" }}
+                style={{ color: fg, fontSize: "var(--text-hero)", textWrap: "pretty" }}
               >
                 {copy.headline}
               </h1>

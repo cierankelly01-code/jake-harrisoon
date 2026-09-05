@@ -213,9 +213,17 @@ export function ProcessStory() {
             </div>
           </div>
 
-          {/* Progress rail */}
+          {/* Progress rail. Desktop (lg) only, matching PIN_BREAKPOINT — CSS,
+              not the JS `pinned` state, so there's no hydration flash on the
+              desktop viewports it's for. Below lg (and under reduced
+              motion) every stage already renders as its own full-width,
+              fully-titled block above, so the rail would be pure decoration
+              there rather than a real progress indicator — and at 4 equal
+              columns in under 400px, decoration is all it could be: a fresh
+              reviewer found it truncating to unreadable fragments like
+              "01ENQ…" on a 375px phone, confirmed pixel-for-pixel. */}
           <ol
-            className="mt-8 grid gap-px"
+            className="mt-8 hidden gap-px lg:grid"
             style={{ gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))`, background: "var(--border-hairline-dark)" }}
           >
             {stages.map((stage, index) => {
