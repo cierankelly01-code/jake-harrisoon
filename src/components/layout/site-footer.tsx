@@ -3,64 +3,34 @@ import { business } from "@/lib/content/business";
 import { PlaceholderMarker } from "@/components/ui/placeholder";
 import { phoneLink, emailLink } from "@/lib/content/contact-links";
 import { COMMERCIAL_ENABLED } from "@/lib/division-shared";
+import { Logo } from "@/components/layout/logo";
 
-/**
- * The footer as a designed destination rather than a sitemap dump: the two
- * conversion routes restated, the coverage list as real local-SEO content,
- * and the statutory disclosure block presented as a drawing title block
- * rather than a plain text row.
- *
- * A giant outlined wordmark used to close the page here. Killed: it is the
- * single most template-legible move in web design right now — every AI
- * page generator reaches for it — and it actively broke on mobile (the
- * word wrapped mid-letter, "MARMI" / "ON", on every page at 375px, because
- * `clamp(4rem, 15vw, 15rem)` has no floor low enough for a nine-letter word
- * at phone widths). The brand name is already stated in prose two columns
- * over; it does not need to shout twice. In its place: the statutory
- * disclosure row, which every UK limited company's site is required to
- * carry, restyled as the title block a real drawing set ends on — bordered
- * cells, mono labels, sheet-register language — so the legally mandatory
- * content does the closing flourish's job instead of a decorative repeat.
- *
- * Companies Act 2006 s.82 / the Company, LLP and Business (Names and Trading
- * Disclosures) Regulations require a UK limited company's website to state
- * its registered name, company number, place of registration and registered
- * office address. None of those are confirmed yet, so each cell renders a
- * placeholder marker AND is called out as a launch blocker in
- * CONTENT_NEEDED.md — this is the one place on the site where showing the
- * gap is doing exactly the job it should.
- */
 const SERVICE_LINKS = [
+  { label: "New boiler quote", href: "/boiler-quote" },
+  { label: "Care plans", href: "/care-plans" },
+  { label: "How we price", href: "/prices" },
+  { label: "Emergency plumbing", href: "/emergency" },
   ...(COMMERCIAL_ENABLED
     ? [
         { label: "Capability statement", href: "/capability" },
         { label: "Tenders & PQQ", href: "/tenders" },
       ]
     : []),
-  { label: "Instant boiler quote", href: "/boiler-quote" },
-  { label: "Care plans", href: "/care-plans" },
-  { label: "How we price", href: "/prices" },
-  { label: "Contact", href: "/contact" },
 ];
 
-const LEGAL_LINKS = [
+const COMPANY_LINKS = [
+  { label: "Contact us", href: "/contact" },
   { label: "Privacy notice", href: "/privacy" },
   { label: "Terms of service", href: "/terms" },
 ];
 
-const PENDING_LEGAL = ["Complaints procedure", "Modern slavery statement"];
-
-/**
- * Companies Act 2006 / ecommerce disclosures, laid out as a drawing title
- * block. Each cell renders its value only once it exists in `business` —
- * see CONTENT_NEEDED.md for what is outstanding.
- */
-const TITLE_BLOCK = [
-  { label: "REGISTERED NAME", value: business.legalEntity as string | null, marker: "REGISTERED NAME" },
-  { label: "COMPANY NO.", value: business.companyNumber, marker: "COMPANY NUMBER" },
-  { label: "VAT NO.", value: business.vatNumber, marker: "VAT NUMBER" },
-  { label: "GAS SAFE", value: business.gasSafeNumber, marker: "GAS SAFE NUMBER" },
-  { label: "REGISTERED OFFICE", value: business.registeredOffice, marker: "REGISTERED OFFICE" },
+/** Companies Act 2006 disclosure. Unconfirmed values render as hidden audit markers. */
+const STATUTORY = [
+  { label: "Registered name", value: business.legalEntity as string | null, marker: "REGISTERED NAME" },
+  { label: "Company no.", value: business.companyNumber, marker: "COMPANY NUMBER" },
+  { label: "VAT no.", value: business.vatNumber, marker: "VAT NUMBER" },
+  { label: "Gas Safe reg.", value: business.gasSafeNumber, marker: "GAS SAFE NUMBER" },
+  { label: "Registered office", value: business.registeredOffice, marker: "REGISTERED OFFICE" },
 ] as const;
 
 export function SiteFooter() {
@@ -68,169 +38,83 @@ export function SiteFooter() {
   const email = emailLink();
 
   return (
-    <footer className="grain relative" style={{ background: "var(--ink)", color: "var(--paper)" }}>
-      {/* Restate the route(s) that convert, once, at the end. One column
-          while COMMERCIAL_ENABLED is false — a two-column band with an
-          empty half would look like a mistake, not a considered layout. */}
-      <div className="relative z-10 border-b" style={{ borderColor: "var(--border-hairline-dark)" }}>
-        <div className={`mx-auto grid max-w-[100rem] gap-px px-6 py-0 ${COMMERCIAL_ENABLED ? "md:grid-cols-2" : ""}`}>
-          <Link
-            href="/boiler-quote"
-            className={`footer-cta group flex items-center justify-between gap-6 py-10 ${COMMERCIAL_ENABLED ? "md:pr-10" : ""}`}
-          >
-            <span>
-              <span className="font-mono-label" style={{ color: "var(--copper-bright)" }}>
-                Domestic
-              </span>
-              <span className="font-display mt-2 block text-2xl">Get an instant boiler price</span>
-            </span>
-            <FooterArrow />
-          </Link>
-          {COMMERCIAL_ENABLED && (
-            <Link
-              href="/tenders"
-              className="footer-cta group flex items-center justify-between gap-6 border-t py-10 md:border-l md:border-t-0 md:pl-10"
-              style={{ borderColor: "var(--border-hairline-dark)" }}
-            >
-              <span>
-                <span className="font-mono-label" style={{ color: "var(--copper-bright)" }}>
-                  Commercial
-                </span>
-                <span className="font-display mt-2 block text-2xl">Submit a tender enquiry</span>
-              </span>
-              <FooterArrow />
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <div className="relative z-10 mx-auto grid max-w-[100rem] gap-10 px-6 py-16 md:grid-cols-12">
-        <div className="flex flex-col gap-3 md:col-span-4">
-          <span className="font-mono-label" style={{ color: "var(--steel-dim)" }}>
-            Get in touch
-          </span>
-          <Link href={phone.href} className="font-display link-draw self-start text-2xl">
-            {phone.isDirect ? phone.label : "Request a callback"}
-          </Link>
-          <Link href={email.href} className="link-draw self-start text-base" style={{ color: "var(--steel-dim)" }}>
-            {email.isDirect ? email.label : "Send us an enquiry"}
-          </Link>
-          <p className="mt-4 max-w-[34ch] text-sm" style={{ color: "var(--steel-dim)" }}>
-            {business.legalEntity}, working out of {business.base} across {business.coverage.length}{" "}
-            towns in the West Midlands.
+    <footer style={{ background: "var(--ink)", color: "var(--paper)" }}>
+      <div className="container-x grid gap-10 py-14 md:grid-cols-12 md:py-20">
+        <div className="flex flex-col gap-5 md:col-span-5">
+          <Logo onDark />
+          <p className="max-w-[36ch] text-sm leading-relaxed" style={{ color: "var(--steel-dim)" }}>
+            Gas Safe registered boiler installation, servicing and plumbing. Based in {business.base},
+            covering {business.coverage.length} towns across the West Midlands.
           </p>
-        </div>
-
-        <nav aria-label="Services" className="flex flex-col gap-2.5 md:col-span-3">
-          <span className="font-mono-label" style={{ color: "var(--steel-dim)" }}>
-            Services
-          </span>
-          {SERVICE_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="link-draw self-start py-1 text-sm"
-              style={{ color: "var(--paper)" }}
-            >
-              {link.label}
+          <div className="flex flex-col gap-2 pt-1">
+            <Link href={phone.href} className="font-display link-draw self-start text-xl" style={{ color: "#fff" }}>
+              {phone.isDirect ? phone.label : "Request a callback"}
             </Link>
-          ))}
-        </nav>
-
-        <div className="flex flex-col gap-2.5 md:col-span-3">
-          <span className="font-mono-label" style={{ color: "var(--steel-dim)" }}>
-            Coverage
-          </span>
-          <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-sm" style={{ color: "var(--steel-dim)" }}>
-            {business.coverage.map((town) => (
-              <span key={town}>{town}</span>
-            ))}
+            <Link href={email.href} className="link-draw self-start text-sm" style={{ color: "var(--steel-dim)" }}>
+              {email.isDirect ? email.label : "Send us an enquiry"}
+            </Link>
           </div>
         </div>
 
-        <nav aria-label="Legal" className="flex flex-col gap-2.5 md:col-span-2">
-          <span className="font-mono-label" style={{ color: "var(--steel-dim)" }}>
-            Legal
+        <nav aria-label="Services" className="flex flex-col gap-1 md:col-span-2">
+          <span className="font-mono-label mb-2" style={{ color: "var(--steel-dim)" }}>
+            Services
           </span>
-          {LEGAL_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="link-draw self-start py-1 text-sm"
-              style={{ color: "var(--paper)" }}
-            >
+          {SERVICE_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className="link-draw self-start text-sm" style={{ color: "#fff" }}>
               {link.label}
             </Link>
           ))}
-          {PENDING_LEGAL.map((label) => (
-            <span key={label} className="py-1 text-sm" style={{ color: "var(--steel-dim)" }}>
-              {label} <span style={{ color: "var(--steel-dim)", opacity: 0.75 }}>(to follow)</span>
-            </span>
+        </nav>
+
+        <nav aria-label="Company" className="flex flex-col gap-1 md:col-span-2">
+          <span className="font-mono-label mb-2" style={{ color: "var(--steel-dim)" }}>
+            Company
+          </span>
+          {COMPANY_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className="link-draw self-start text-sm" style={{ color: "#fff" }}>
+              {link.label}
+            </Link>
           ))}
         </nav>
-      </div>
 
-      {/* Statutory title block. Reads like the block a real drawing set
-          closes on: SHEET / SCALE / REV cells, hairline-divided, mono
-          labels over the value. Every cell here is a legal disclosure
-          requirement, not decoration — see the file-header note above. A
-          cell appears once its fact is known; PlaceholderMarker keeps the
-          gap in the DOM for the [data-placeholder] sweep and in
-          CONTENT_NEEDED.md until then. */}
-      <div className="relative z-10 border-t" style={{ borderColor: "var(--border-hairline-dark)" }}>
-        {/* Every cell carries its own full border rather than relying on
-            nth-child selectors to place dividers only between siblings —
-            adjacent hairlines simply overlap to one line, and the lattice
-            this makes echoes the blueprint grid used on the hero. */}
-        <div
-          className="mx-auto grid max-w-[100rem] gap-px sm:grid-cols-3 lg:grid-cols-5"
-          style={{ background: "var(--border-hairline-dark)" }}
-        >
-          {TITLE_BLOCK.map(({ label, value, marker }) => (
-            <div key={marker} className="px-6 py-5" style={{ background: "var(--ink)" }}>
-              <span className="font-mono-label block" style={{ color: "var(--steel-dim)" }}>
-                {label}
-              </span>
-              <span className="mt-2 block text-sm" style={{ color: "var(--paper)" }}>
-                {value ?? <PlaceholderMarker label={marker} />}
-              </span>
-            </div>
-          ))}
-          {/* Filler cell. The grid's own background is the hairline colour
-              (that's what draws the 1px dividers through gap-px) — with 5
-              real cells and 3 columns, the second row is short one cell,
-              and that hairline colour showed straight through as a solid
-              rust-brown block instead of --ink. A fresh reviewer caught
-              this at exactly the breakpoint it happens: 3 columns from
-              `sm`, 5 from `lg`, so 5 items divide evenly at `lg` (no
-              filler needed, hidden) but leave a 1-cell remainder between
-              `sm` and `lg` (filler visible only in that range). */}
-          <div className="hidden sm:block lg:hidden" style={{ background: "var(--ink)" }} aria-hidden="true" />
+        <div className="flex flex-col gap-1 md:col-span-3">
+          <span className="font-mono-label mb-2" style={{ color: "var(--steel-dim)" }}>
+            Areas we cover
+          </span>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--steel-dim)" }}>
+            {business.coverage.join(" · ")}
+          </p>
         </div>
       </div>
 
-      <div
-        className="relative z-10 mx-auto flex max-w-[100rem] flex-col gap-2 border-t px-6 py-6 font-mono text-xs md:flex-row md:items-center md:justify-between"
-        style={{ color: "var(--steel-dim)", borderColor: "var(--border-hairline-dark)" }}
-      >
-        <span>SHEET — FOOTER · SCALE N.T.S.</span>
-        {/* Rendered at request time, not build time: this page is otherwise
-            statically prerendered, which would freeze the year at whenever the
-            site was last deployed. */}
-        <span suppressHydrationWarning>
-          © {new Date().getFullYear()} {business.legalEntity}. We stand behind the work.
-        </span>
+      <div style={{ borderTop: "1px solid var(--border-hairline-dark)" }}>
+        <div className="container-x flex flex-col gap-6 py-8 text-xs md:flex-row md:items-start md:justify-between">
+          <dl className="grid gap-x-8 gap-y-2 sm:grid-cols-2 lg:grid-cols-3" style={{ color: "var(--steel-dim)" }}>
+            {STATUTORY.map(({ label, value, marker }) =>
+              value ? (
+                <div key={marker} className="flex gap-2">
+                  <dt className="shrink-0 font-semibold" style={{ color: "#fff" }}>
+                    {label}
+                  </dt>
+                  <dd>{value}</dd>
+                </div>
+              ) : (
+                /* Wrapped in a <div>. A <dl> may only directly contain
+                   <dt>, <dd>, <div>, <script> or <template>, and
+                   PlaceholderMarker renders a bare <span hidden> — invisible,
+                   but an HTML validation error on every page of the site. */
+                <div key={marker}>
+                  <PlaceholderMarker label={marker} />
+                </div>
+              )
+            )}
+          </dl>
+          <p className="shrink-0" style={{ color: "var(--steel-dim)" }} suppressHydrationWarning>
+            © {new Date().getFullYear()} {business.legalEntity ?? business.tradingName}
+          </p>
+        </div>
       </div>
     </footer>
-  );
-}
-
-function FooterArrow() {
-  return (
-    <span className="footer-cta__arrow shrink-0" aria-hidden="true" style={{ color: "var(--flame-glow)" }}>
-      <svg width="30" height="14" viewBox="0 0 30 14" fill="none">
-        <path d="M0 7h27M22 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" />
-      </svg>
-    </span>
   );
 }

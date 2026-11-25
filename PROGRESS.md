@@ -2,6 +2,151 @@
 
 Tracking against the master brief's own §19 Build Order.
 
+## Round 6 — Hartson rename + green/black rebuild, 25 November 2026
+
+Two client instructions arrived together: the firm is **Hartson Heating**,
+not Marmion, and the palette is **green and black**. Jake also sent
+rygroup.co.uk as the reference — he wants its shape (one bold colour, big
+type, a "what are you looking for" router, a full service list) with his own
+spin, kept simple for the customer. Direction and reasoning: `DESIGN.md`.
+
+**What changed**
+
+1. **Renamed** Marmion → Hartson Heating across 26 source files. Spelling
+   taken from the van artwork Jake sent (`HARTSON HEATING`), not from
+   dictation ("Heartson") — flagged for confirmation in `CONTENT_NEEDED.md`.
+   The bulk rename briefly invented `legalEntity: "Hartson Heating Ltd"`;
+   that was reverted to `null` and the privacy notice, terms, footer and
+   JSON-LD now omit or chip the registered name rather than assert one.
+2. **Repalette.** Navy/flame-blue → near-black `#0b0f0d` with a faint green
+   cast, plus one action green `#2fd37a`. Every pair measured before use;
+   the table is in `DESIGN.md`. The old `--flame` token kept its name and
+   changed its value, so the 60 call sites did not move.
+3. **Caught by the repalette:** white-on-green is 2.0:1 and was failing as a
+   serious axe violation wherever the old white-on-blue had passed —
+   `.btn--primary`, the emergency CTA band, the care-plan "Recommended"
+   badge. All now use `--ink` on green (9.9:1). Bright green as *text* on
+   white was doing the same thing in 17 places; those moved to
+   `--copper-ink` (6.6:1), and green borders to `--flame-glow` (3.5:1).
+4. **New homepage.** Dark hero leading on the two owners' names, a four-card
+   need router (the signature moment), a six-service list, and a
+   transparent-pricing band that promises the behaviour rather than
+   inventing figures. `boiler-types`, `why-marmion` and the comparison table
+   came off the homepage — the page was arguing the same point four times.
+   Header, mobile drawer and logo moved to the dark brand.
+5. **Pre-existing bugs fixed in passing:** the care-plans FAQ wrapped
+   `<dt>`/`<dd>` inside `<details>` (axe `definition-list` + `dlitem`,
+   serious), and the privacy retention table scrolled sideways with no
+   keyboard access (`scrollable-region-focusable`, serious).
+
+6. **Two review rounds, two fresh reviewers** (68/100, then 73/100 — the
+   house gate is 85, so this is not signed off). What they caught:
+   - The **quote PDF** still said MARMION on the letterhead and carried a
+     hardcoded "Hartson Heating Ltd." — the same invented entity that had
+     been reverted in `business.ts` an hour earlier. It is emailed to every
+     customer who completes a quote.
+   - The **favicon** was `#1f5bff` and labelled "Marmion". Regenerated from
+     `icon.svg` at 16/32/48px, verified pixel-by-pixel. The first rewrite of
+     `icon.svg` was itself invalid XML — `--flame` in a comment, and a
+     double hyphen is illegal there.
+   - The **quote wizard's selected answer** was white on green (1.96:1) — a
+     direct regression from the repalette. axe missed it because the state
+     needs a click.
+   - A **JSON-LD escape guard** had been defused: `"<"` instead of
+     `"\\u003c"` makes the replace swap `<` for `<`.
+   - **Care-plan prices contradicted themselves**: the homepage chipped them
+     as unconfirmed while `/care-plans` published a full £8/£14/£22 tariff
+     with VAT treatment and a claim cap, on a site whose `/prices` page says
+     nothing is signed off. Now gated everywhere by
+     `CARE_PLAN_PRICES_CONFIRMED`, including the Stripe checkout, which
+     would otherwise have charged a real card an unsigned-off price.
+   - The **404 page** advertised "from £8 a month".
+   - **Email fell back to `no-reply@marmion.example`**, a domain nobody
+     owns. It now refuses to send rather than fail SPF silently.
+   - The **callback form could report success while dropping the lead** —
+     no director email, no Supabase key, `console.warn`, "we'll ring you
+     back". It is the only route to a human while the phone number is
+     unconfirmed.
+   - The **"two-hour window" claim** sat above a list including Coventry
+     (~30 miles). Split into `coverageCore` (7 same-day towns) and the
+     wider booked-in list.
+   - The **quote flow promised "three price bands straight away"** and then
+     emailed them behind a contact form. Copy corrected; whether to show
+     them ungated is a client decision, not ours.
+   - Mobile page cut from **11,234px to 9,492px** (13.8 → 11.7 screens).
+
+**Evidence** — 8 pages, production build, throttled: verify **0 FAIL** / 19
+WARN, links PASS 0 broken, copy-sweep PASS 0 FAIL, vitest 13/13, eslint
+clean, tsc clean. Lab LCP 996ms @375, 440ms @1440; CLS 0.000. The no-JS
+screenshot is byte-identical to the JS one.
+
+**Not signed off.** Design review peaked at 73/100 against a gate of 85.
+The gap is mostly assets, but not entirely — see the open items below.
+
+**Open, needs the client:** spelling of Hartson vs Heartson, real phone
+number, registered company name and number, Gas Safe number, logo vector,
+one photograph of Jake and Harrison, care-plan prices. All in
+`CONTENT_NEEDED.md`.
+
+**Open, needs a decision from us:** whether the page should carry more
+green (it currently floods black and spends green on actions only);
+whether the quote bands show ungated; whether the two founder cards get a
+sentence each in their own words instead of identical chip-sets; and
+whether to delete the five orphaned components listed in
+`homepage-sections.tsx`.
+
+## Round 5 — front-end redesign, 17 September 2026
+
+Client reviewed rounds 1–4 and rejected the look: "too AI-y, AI slop, text a
+bit shit." Their benchmark is boxt.co.uk. This round replaced the
+Neo-Industrial front end with a clean consumer boiler-site layout — see
+`DESIGN_SYSTEM.md` §1–5 for the direction and the section map.
+
+**What changed**
+
+- One typeface (Figtree), navy/white/flame-blue palette, rounded cards.
+  Token names were kept so every inner page restyled itself; values,
+  primitives and component classes were rewritten in `globals.css`.
+- Homepage rebuilt: hero with from-price and tick list, an **instant
+  estimator** that runs the real quote engine and hands its answers to the
+  wizard, boiler-type cards, "what's included", three steps + install-day
+  checklist, the two directors, comparison (cards on phones), care-plan
+  tiers with prices, coverage, FAQ, final CTA. Header, footer, sticky bar,
+  404, OG image and favicon redone.
+- **New: a callback request form on `/contact`** — until a phone number is
+  confirmed, "Request a callback" everywhere on the site used to land on a
+  page with no form. Server action writes a `leads` row and emails the
+  directors through the existing guard/notify plumbing.
+- Quote wizard: option tiles and inputs restyled, location step is chips,
+  restore lands on the first unanswered step, result screen ends on "Book
+  my free survey". `/prices` no longer shows a table of dashes.
+- Copy pass: shorter, plainer, contracted; the "no X, no Y, no Z" tic and
+  the drawing-office vocabulary ("sheet", "schematic", "job ref") are gone
+  from public copy. FAQ questions whose answer would be "to be confirmed"
+  were reworded. "Most chosen" became "Recommended" — no customer data
+  supports the former.
+- Removed: process-story pinned scroller, sectors ticker, Docket card and
+  generated art, section index numbers, grain, blueprint grid, scroll
+  progress bar, Archivo/Instrument/Martian fonts.
+
+**Fresh-eyes reviews (BADMAN §6)**: two independent reviewers scored 48 and
+46 /100 against the badman rubric — below the 85 gate. Every
+agency-controlled finding was fixed (listed in this commit); the remaining
+deductions cluster in three places the front end cannot fix:
+
+1. **No phone number, email, photos, reviews or Gas Safe number** — all
+   `null` in `business.ts` by the honesty rule. Both reviewers made this
+   their headline finding. Fill `business.ts` and the header, footer,
+   sticky bar and contact page switch to real `tel:`/`mailto:` links
+   automatically.
+2. **Distinctiveness** (scored 3–4 both rounds). The rubric wants a site
+   that "stops the scroll in a lineup of AI sites"; the client asked for
+   BOXT, which is deliberately plain. These are opposed goals and the
+   client's brief wins. Flagged, not looped on.
+3. **The hero image** is the client-supplied cutaway render
+   (`public/home-cutaway.webp`). Reviewer 2 called it the most
+   AI-looking element on the page. It is easy to swap for a photo.
+
 ## Commercial division switched off — 5 September 2026
 
 Client request: focus on domestic only "for right now." **Temporary, not a

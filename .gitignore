@@ -42,3 +42,16 @@ next-env.d.ts
 
 # Isolated dist dir for building while `next dev` is running (see next.config.ts)
 .next-build/
+
+# ---------------------------------------------------------------------------
+# Client material and internal audit output. The GitHub remote for this repo
+# is PUBLIC, so a stray `git add -A && git push` would publish all of it.
+# `claims.md` is the worst of them: it enumerates, file by file, every claim
+# on the site that has no source yet.
+# ---------------------------------------------------------------------------
+verify-out/
+design-concepts/
+claims.md
+/*.jpeg
+/*.jpg
+/*.png

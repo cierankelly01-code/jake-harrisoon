@@ -20,8 +20,8 @@ import { StickyCallBar } from "@/components/plugins/sticky-call-bar";
  * boiler/heating/plumbing. Flip the flag back and this reverts with it.
  */
 const SITE_TITLE = COMMERCIAL_ENABLED
-  ? "Marmion Building Services | Mechanical, Electrical & Plumbing Contractor"
-  : "Marmion Building Services | Boiler Installation, Heating & Plumbing";
+  ? "Hartson Heating | Mechanical, Electrical & Plumbing Contractor"
+  : "Boiler Installation & Plumbing, Tamworth | Hartson";
 const SITE_DESCRIPTION = COMMERCIAL_ENABLED
   ? "Mechanical contracting, PPM and statutory compliance across the West Midlands, plus domestic plumbing and heating in Tamworth, Lichfield and Sutton Coldfield."
   : "Gas Safe registered boiler installation, servicing and emergency plumbing in Tamworth, Lichfield, Sutton Coldfield and across the West Midlands.";
@@ -32,14 +32,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_TITLE,
-    template: "%s | Marmion Building Services",
+    template: "%s | Hartson Heating",
   },
   description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_GB",
-    siteName: "Marmion Building Services",
+    siteName: "Hartson Heating",
     url: "/",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
  * (`color-scheme: light` in globals.css), so there is no separate dark entry.
  */
 export const viewport: Viewport = {
-  themeColor: "#0b0e14",
+  themeColor: "#ffffff",
   colorScheme: "light",
 };
 
@@ -94,7 +94,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:px-4 focus:py-2"
-          style={{ background: "var(--flame)", color: "var(--paper)", borderRadius: "var(--radius)" }}
+          style={{ background: "var(--flame)", color: "var(--ink)", borderRadius: "12px", fontWeight: 600 }}
         >
           Skip to main content
         </a>

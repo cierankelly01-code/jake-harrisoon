@@ -1,62 +1,56 @@
-import { Hero } from "@/components/home/hero";
-import { SectorsServed } from "@/components/home/sectors-served";
-import { Commitments } from "@/components/home/commitments";
-import { ServicesGrid } from "@/components/home/services-grid";
-import { ProcessStory } from "@/components/home/process-story";
-import { Standards } from "@/components/home/standards";
-import { ComparisonTable } from "@/components/plugins/comparison-table";
+import { HeroNight } from "@/components/home/hero-night";
+import { NeedRouter } from "@/components/home/need-router";
+import { EverythingWeDo } from "@/components/home/everything-we-do";
+import { PricePromise } from "@/components/home/price-promise";
+import { HowItWorks } from "@/components/home/how-it-works";
+import { Engineers } from "@/components/home/engineers";
 import { CarePlansTeaser } from "@/components/home/care-plans-teaser";
 import { ServiceAreaMap } from "@/components/home/service-area-map";
 import { Faq } from "@/components/home/faq";
 import { FinalCta } from "@/components/home/final-cta";
 
 /**
- * The actual homepage content — factored out of app/page.tsx so `/`,
- * `/commercial` and `/domestic` render byte-identical section markup.
- * Only the division context differs between them (forced by route for the
- * two dedicated URLs, cookie-driven at `/`), and every section already
- * reads that from useDivision() — see DESIGN_SYSTEM.md §10 for why the
- * dedicated routes exist and lib/division.ts for how the division is
- * resolved per route.
+ * Homepage content, shared by `/`, `/commercial` and `/domestic` so all
+ * three render identical markup; only the division context differs.
  *
- * Section order follows the local-service blueprint: Hook → Proof → Offer →
- * Objections → Close, with a deliberate light/dark alternation so the page
- * has a rhythm instead of running as one continuous cream field.
+ * Reordered November 2026 for the green/black rebuild (see DESIGN.md). The
+ * client asked for rygroup.co.uk's shape — one bold colour, big type, a
+ * "what are you looking for" router and a full service list — with the
+ * carousels, the chat widget and the unverifiable award and rating blocks
+ * left out.
  *
- *   Hero            hook + the proof that is true today          dark
- *   Ticker          what we cover                                dark
- *   Commitments     the named guarantee (proof)                  light
- *   Services        the offer                                    light
- *   Process ★       showstopper — kills fear of the unknown      dark
- *   Standards       borrowed credibility + who turns up          dark
- *   Comparison      objection handling                           light
- *   Care plans      secondary offer                               light
- *   Coverage        local proof                                  light
- *   FAQ             remaining objections                         light
- *   Final CTA       close                                        blue
+ *   Hero            who we are, three ways in
+ *   Need router     the signature moment — route by need, not audience
+ *   Everything      the full domestic service list, all visible, no slider
+ *   Price promise   the transparent-pricing band, behaviour not fake figures
+ *   How it works    three steps + what happens on the day
+ *   Engineers       Jake and Harrison, the actual differentiator
+ *   Care plans      secondary offer (domestic only)
+ *   Coverage        local proof
+ *   FAQ             remaining objections
+ *   Final CTA       close
  *
- * Standards and Founders (the two named directors) used to be separate
- * sections — merged into one (round 4, mobile-length fix) since both were
- * "credibility" content back-to-back and mobile ran 18+ viewports. Nothing
- * was cut; see standards.tsx.
+ * `boiler-types`, `why-marmion`, `comparison-table`, the old `hero` and
+ * `quick-price` came off the homepage because the client asked for "nice
+ * and simple" and the page was arguing the same point four times.
  *
- * The empty-state sections that used to sit in the middle of this page
- * (recent work, reviews, accreditations held, half-null capability stats)
- * have been removed rather than restyled. Three consecutive panels saying
- * "nothing here yet" is worse than not having the sections, and everything
- * they were reserving space for is now covered by proof that is real on day
- * one: commitments, process, standards and the two named directors.
+ * They are now orphaned — nothing imports any of them. They are being kept
+ * through the client-feedback round in case a section is asked for back,
+ * and should be deleted along with their dead CSS (`.docket*`,
+ * `.utility-strip`, `.icon-well*`, `.price-flip`, `.seg`, `.reveal--lead`,
+ * `.tick--on-dark`, `.chip--dark`, `.card--dark`, `.scroll-fade-x*`,
+ * `.footer-cta__arrow`) once the structure is signed off. Do not read their
+ * presence as evidence they are wired up anywhere.
  */
 export function HomepageSections() {
   return (
     <>
-      <Hero />
-      <SectorsServed />
-      <Commitments />
-      <ServicesGrid />
-      <ProcessStory />
-      <Standards />
-      <ComparisonTable />
+      <HeroNight />
+      <NeedRouter />
+      <EverythingWeDo />
+      <PricePromise />
+      <HowItWorks />
+      <Engineers />
       <CarePlansTeaser />
       <ServiceAreaMap />
       <Faq />

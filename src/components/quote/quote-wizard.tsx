@@ -37,6 +37,16 @@ const EMPTY: Answers = {
 };
 
 const STORAGE_KEY = "marmion-boiler-quote";
+
+const LOCATION_OPTIONS = [
+  { value: "Kitchen", label: "Kitchen" },
+  { value: "Utility room", label: "Utility room" },
+  { value: "Airing cupboard", label: "Airing cupboard" },
+  { value: "Garage", label: "Garage" },
+  { value: "Loft", label: "Loft" },
+  { value: "Bedroom", label: "Bedroom" },
+  { value: "Other", label: "Somewhere else" },
+];
 const TOTAL_STEPS = QUOTE_STEP_IDS.length;
 const PHOTO_STEP_INDEX = QUOTE_STEP_IDS.indexOf("photo");
 const CONTACT_STEP_INDEX = TOTAL_STEPS - 1;
@@ -45,7 +55,7 @@ const inputStyle = {
   borderColor: "var(--border-hairline)",
   background: "var(--surface)",
   color: "var(--ink)",
-  borderRadius: "var(--radius)",
+  borderRadius: "12px",
 } as const;
 
 /**
@@ -81,8 +91,8 @@ function validateStep(step: number, answers: Answers): Partial<Record<keyof Answ
       if (!answers.currentSystem) errors.currentSystem = "Choose your current system.";
       break;
     case "location":
-      if (!answers.boilerLocation.trim())
-        errors.boilerLocation = "Tell us where the boiler is now — a rough description is fine.";
+      if (!answers.boilerLocation.trim() || answers.boilerLocation.trim() === "Other:")
+        errors.boilerLocation = "Tell us where the boiler is now.";
       break;
     case "fuel":
       if (!answers.fuelType) errors.fuelType = "Choose the fuel type.";
@@ -128,11 +138,16 @@ function OptionGrid({
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(opt.value)}
-            className="quote-option font-mono-label min-h-[52px] border px-4 py-4 text-left"
+            className="quote-option min-h-[52px] border px-4 py-3.5 text-left text-sm font-semibold"
             style={{
               borderColor: selected ? "var(--flame)" : invalid ? "var(--amber-ink)" : "var(--border-hairline)",
               background: selected ? "var(--flame)" : "var(--surface)",
-              color: selected ? "var(--paper)" : "var(--ink)",
+              /* Always ink. Under the navy palette --flame was #1f5fe0 and
+                 white on it measured 5.6:1; --flame is now #2fd37a and
+                 white on it is 1.96:1, so every answer became unreadable
+                 the moment it was chosen. axe never caught it because the
+                 state needs a click. */
+              color: "var(--ink)",
               borderRadius: "var(--radius)",
             }}
           >
@@ -169,6 +184,7 @@ export function QuoteWizard() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(EMPTY);
   const [restored, setRestored] = useState(false);
+  const [restoredStep, setRestoredStep] = useState(0);
   const [errors, setErrors] = useState<Partial<Record<keyof Answers, string>>>({});
   const [photo, setPhoto] = useState<File | null>(null);
 
@@ -185,8 +201,18 @@ export function QuoteWizard() {
 
     const savedAnswers = saved?.answers;
     if (savedAnswers && Object.values(savedAnswers).some((v) => typeof v === "string" && v !== "")) {
-      setAnswers({ ...EMPTY, ...savedAnswers });
+      const merged = { ...EMPTY, ...savedAnswers };
+      setAnswers(merged);
       setRestored(true);
+      // Land on the first step that still needs an answer, so someone
+      // arriving from the homepage estimator isn't asked the same four
+      // questions again.
+      let firstIncomplete = 0;
+      while (firstIncomplete < CONTACT_STEP_INDEX && Object.keys(validateStep(firstIncomplete, merged)).length === 0) {
+        firstIncomplete += 1;
+      }
+      setStep(firstIncomplete);
+      setRestoredStep(firstIncomplete);
     }
   }, []);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -322,14 +348,14 @@ export function QuoteWizard() {
           surprise only if the reader knows it happened — otherwise a
           pre-filled form looks like someone else's data, and a half-answered
           step looks like a bug. */}
-      {restored && (
+      {restored && step === restoredStep && (
         <div
           role="status"
-          className="border-l-2 py-3 pl-4 text-sm"
-          style={{ borderColor: "var(--flame)", background: "var(--surface)", color: "var(--ink)" }}
+          className="rounded-xl px-4 py-3 text-sm"
+          style={{ background: "var(--flame-tint)", color: "var(--ink)" }}
         >
-          We&rsquo;ve brought back the answers you gave last time. Change anything that is out of
-          date, or{" "}
+          We&rsquo;ve kept the answers you already gave and skipped ahead. Go back to change
+          anything, or{" "}
           <button
             type="button"
             onClick={startOver}
@@ -411,7 +437,7 @@ export function QuoteWizard() {
           <FieldError id={eid("propertyType")} message={errors.propertyType} />
 
           <div className="mt-6">
-            <label htmlFor={`${fieldId}-bedrooms`} className="font-mono-label block" style={{ color: "var(--steel)" }}>
+            <label htmlFor={`${fieldId}-bedrooms`} className="block text-sm font-semibold" style={{ color: "var(--ink)" }}>
               Bedrooms
             </label>
             <input
@@ -424,7 +450,7 @@ export function QuoteWizard() {
               onChange={(e) => set("bedrooms", e.target.value)}
               aria-invalid={!!errors.bedrooms || undefined}
               aria-describedby={errors.bedrooms ? eid("bedrooms") : undefined}
-              className="mt-1.5 w-32 border px-3 py-2.5"
+              className="field mt-1.5 w-32"
               style={inputStyle}
             />
             <FieldError id={eid("bedrooms")} message={errors.bedrooms} />
@@ -434,7 +460,7 @@ export function QuoteWizard() {
 
       {step === 1 && (
         <Step title="Bathrooms and shower type" headingRef={headingRef}>
-          <label htmlFor={`${fieldId}-bathrooms`} className="font-mono-label block" style={{ color: "var(--steel)" }}>
+          <label htmlFor={`${fieldId}-bathrooms`} className="block text-sm font-semibold" style={{ color: "var(--ink)" }}>
             Bathrooms
           </label>
           <input
@@ -447,7 +473,7 @@ export function QuoteWizard() {
             onChange={(e) => set("bathrooms", e.target.value)}
             aria-invalid={!!errors.bathrooms || undefined}
             aria-describedby={errors.bathrooms ? eid("bathrooms") : undefined}
-            className="mt-1.5 w-32 border px-3 py-2.5"
+            className="field mt-1.5 w-32"
             style={inputStyle}
           />
           <FieldError id={eid("bathrooms")} message={errors.bathrooms} />
@@ -498,24 +524,34 @@ export function QuoteWizard() {
 
       {step === 3 && (
         <Step title="Where's the boiler now, and where do you want it?" headingRef={headingRef}>
-          <label htmlFor={`${fieldId}-current-loc`} className="font-mono-label block" style={{ color: "var(--steel)" }}>
-            Current location
-          </label>
-          <input
-            id={`${fieldId}-current-loc`}
-            value={answers.boilerLocation}
-            onChange={(e) => set("boilerLocation", e.target.value)}
-            placeholder="e.g. Airing cupboard"
-            aria-invalid={!!errors.boilerLocation || undefined}
-            aria-describedby={errors.boilerLocation ? eid("boilerLocation") : undefined}
-            className="mt-1.5 w-full border px-3 py-2.5"
-            style={inputStyle}
+          <OptionGrid
+            legend="Current location"
+            value={LOCATION_OPTIONS.some((o) => o.value === answers.boilerLocation) ? answers.boilerLocation : answers.boilerLocation ? "Other" : ""}
+            onChange={(v) => set("boilerLocation", v === "Other" ? "Other: " : v)}
+            invalid={!!errors.boilerLocation}
+            errorId={eid("boilerLocation")}
+            options={LOCATION_OPTIONS}
           />
+          {answers.boilerLocation.startsWith("Other") && (
+            <>
+              <label htmlFor={`${fieldId}-current-loc`} className="mt-4 block text-sm font-semibold" style={{ color: "var(--ink)" }}>
+                Where is it?
+              </label>
+              <input
+                id={`${fieldId}-current-loc`}
+                value={answers.boilerLocation.replace(/^Other:\s?/, "")}
+                onChange={(e) => set("boilerLocation", `Other: ${e.target.value}`)}
+                placeholder="e.g. Under the stairs"
+                className="field mt-1.5"
+                style={inputStyle}
+              />
+            </>
+          )}
           <FieldError id={eid("boilerLocation")} message={errors.boilerLocation} />
 
           <label
             htmlFor={`${fieldId}-target-loc`}
-            className="font-mono-label mt-5 block"
+            className="mt-5 block text-sm font-semibold"
             style={{ color: "var(--steel)" }}
           >
             Target location <span style={{ textTransform: "none", letterSpacing: 0 }}>(optional)</span>
@@ -525,7 +561,7 @@ export function QuoteWizard() {
             value={answers.targetLocation}
             onChange={(e) => set("targetLocation", e.target.value)}
             placeholder="e.g. Kitchen cupboard"
-            className="mt-1.5 w-full border px-3 py-2.5"
+            className="field mt-1.5"
             style={inputStyle}
           />
           <p className="mt-2 text-sm" style={{ color: "var(--steel)" }}>
@@ -709,7 +745,7 @@ function ContactStep({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor={`${fieldId}-name`} className="font-mono-label block" style={{ color: "var(--steel)" }}>
+          <label htmlFor={`${fieldId}-name`} className="block text-sm font-semibold" style={{ color: "var(--ink)" }}>
             Name
           </label>
           <input
@@ -717,12 +753,12 @@ function ContactStep({
             name="name"
             required
             autoComplete="name"
-            className="mt-1.5 w-full border px-3 py-2.5"
+            className="field mt-1.5"
             style={inputStyle}
           />
         </div>
         <div>
-          <label htmlFor={`${fieldId}-email`} className="font-mono-label block" style={{ color: "var(--steel)" }}>
+          <label htmlFor={`${fieldId}-email`} className="block text-sm font-semibold" style={{ color: "var(--ink)" }}>
             Email
           </label>
           <input
@@ -732,12 +768,12 @@ function ContactStep({
             required
             autoComplete="email"
             inputMode="email"
-            className="mt-1.5 w-full border px-3 py-2.5"
+            className="field mt-1.5"
             style={inputStyle}
           />
         </div>
         <div>
-          <label htmlFor={`${fieldId}-postcode`} className="font-mono-label block" style={{ color: "var(--steel)" }}>
+          <label htmlFor={`${fieldId}-postcode`} className="block text-sm font-semibold" style={{ color: "var(--ink)" }}>
             Postcode
           </label>
           <input
@@ -748,7 +784,7 @@ function ContactStep({
             value={answers.postcode}
             onChange={(e) => onAnswerChange("postcode", e.target.value)}
             onBlur={onCapture}
-            className="mt-1.5 w-full border px-3 py-2.5 uppercase"
+            className="field mt-1.5 uppercase"
             style={inputStyle}
           />
           {hasPostcode && !coverageMatch && (
@@ -759,7 +795,7 @@ function ContactStep({
           )}
         </div>
         <div>
-          <label htmlFor={`${fieldId}-phone`} className="font-mono-label block" style={{ color: "var(--steel)" }}>
+          <label htmlFor={`${fieldId}-phone`} className="block text-sm font-semibold" style={{ color: "var(--ink)" }}>
             Phone
           </label>
           <input
@@ -773,7 +809,7 @@ function ContactStep({
             onChange={(e) => onAnswerChange("phone", e.target.value)}
             onBlur={onCapture}
             aria-describedby={`${fieldId}-phone-note`}
-            className="mt-1.5 w-full border px-3 py-2.5"
+            className="field mt-1.5"
             style={inputStyle}
           />
         </div>
@@ -853,7 +889,7 @@ function QuoteResult({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "marmion-boiler-quote.pdf";
+    a.download = "hartson-boiler-quote.pdf";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -866,8 +902,8 @@ function QuoteResult({
         Your price bands
       </h2>
       <p className="max-w-[58ch]" style={{ color: "var(--steel)" }}>
-        A copy is on its way by email. These are bands, not the final figure: the fixed price is set
-        after a free survey, and once it is set it does not move without your agreement.
+        A copy is on its way by email. These are bands, not the final figure: the fixed price is
+        confirmed at a free survey, and once it&rsquo;s in writing it stays put.
       </p>
       <div className="grid gap-4 md:grid-cols-3">
         {tiers.map((t) => {
@@ -880,31 +916,31 @@ function QuoteResult({
                 borderColor: recommended ? "var(--flame)" : "var(--border-hairline)",
                 borderWidth: recommended ? 2 : 1,
                 borderRadius: "var(--radius)",
-                background: recommended ? "var(--flame-deep)" : "var(--surface)",
-                color: recommended ? "var(--paper)" : "var(--ink)",
+                background: recommended ? "var(--flame-tint)" : "var(--surface)",
+                color: "var(--ink)",
               }}
             >
               {recommended && (
                 <span
                   className="font-mono-label absolute -top-3 left-6 px-2 py-1"
-                  style={{ background: "var(--flame)", color: "var(--paper)", borderRadius: "var(--radius)" }}
+                  style={{ background: "var(--flame)", color: "var(--ink)", borderRadius: "var(--radius)" }}
                 >
-                  Our pick
+                  Recommended
                 </span>
               )}
               <span
                 className="font-mono-label"
-                style={{ color: recommended ? "var(--flame-pale)" : "var(--steel)" }}
+                style={{ color: recommended ? "var(--copper-ink)" : "var(--steel)" }}
               >
                 {t.label}
               </span>
               <p className="font-display mt-2 text-lg">{t.boiler}</p>
-              <p className="font-mono tnum mt-3 text-2xl">
+              <p className="font-display tnum mt-3 text-2xl">
                 £{t.priceLow.toLocaleString("en-GB")}–£{t.priceHigh.toLocaleString("en-GB")}
               </p>
               <p
                 className="font-mono-label mt-2"
-                style={{ color: recommended ? "var(--steel-dim)" : "var(--steel)" }}
+                style={{ color: "var(--steel)" }}
               >
                 {t.warrantyYears} yr warranty · from £{t.monthlyOver60}/mo
               </p>
@@ -912,9 +948,17 @@ function QuoteResult({
           );
         })}
       </div>
-      <button type="button" onClick={download} className="btn btn--primary self-start">
-        Download PDF
-      </button>
+      <div className="flex flex-wrap items-center gap-4">
+        <a href="/contact" className="btn btn--primary btn--lg">
+          Book my free survey
+        </a>
+        <button type="button" onClick={download} className="link-draw text-sm font-semibold" style={{ color: "var(--copper-ink)" }}>
+          Download these bands as a PDF
+        </button>
+      </div>
+      <p className="text-sm" style={{ color: "var(--steel)" }}>
+        The survey takes about half an hour, costs nothing and doesn&rsquo;t commit you to anything.
+      </p>
     </div>
   );
 }

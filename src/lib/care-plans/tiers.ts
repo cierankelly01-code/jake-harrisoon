@@ -8,6 +8,17 @@
  * objects, so there's nothing to keep in sync in the Stripe dashboard).
  */
 
+/**
+ * False until the directors sign off every monthly figure above.
+ *
+ * While it is false the UI must not present these as retail prices. They
+ * were rendering as a hero-sized "from £8 a month" with no caveat, which
+ * is exactly the invented-looking number the rest of this build refuses to
+ * print — `business.ts` keeps unconfirmed facts `null` for the same reason.
+ * Flip this to true in the same commit that confirms the figures.
+ */
+export const CARE_PLAN_PRICES_CONFIRMED = false;
+
 export type CarePlanTier = "service" | "cover" | "complete";
 
 export type CarePlanDefinition = {

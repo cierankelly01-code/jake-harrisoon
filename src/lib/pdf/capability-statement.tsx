@@ -10,11 +10,11 @@ import { business } from "@/lib/content/business";
  * assets are exported. See HANDOFF.md "PDF fonts" for the follow-up.
  */
 
-const INK = "#0B0E14";
-const FLAME = "#1F5FE0";
-const COPPER = "#A6613C";
-const STEEL = "#6B7684";
-const PAPER = "#F7F6F3";
+const INK = "#0B0F0D";
+const FLAME = "#0B5C33";
+const COPPER = "#0A6B3A";
+const STEEL = "#55605A";
+const PAPER = "#F4F7F4";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontFamily: "Helvetica", color: INK, backgroundColor: PAPER },
@@ -45,7 +45,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 export function CapabilityStatementDocument() {
   const ph = (v: string | null) => v ?? "PLACEHOLDER — CONFIRM BEFORE ISSUING";
   return (
-    <Document title="Marmion Building Services — Capability Statement">
+    <Document title="Hartson Heating — Capability Statement">
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
@@ -57,7 +57,7 @@ export function CapabilityStatementDocument() {
 
         <Text style={styles.h1}>Mechanical, electrical and plumbing contracting</Text>
         <Text style={styles.body}>
-          {business.legalEntity} — Commercial and Domestic divisions, based in {business.base}.
+          {ph(business.legalEntity)} — Commercial and Domestic divisions, based in {business.base}.
           Directed by {business.directors.map((d) => d.firstName).join(" and ")}, both Gas Safe
           registered engineers, {business.ownership}.
         </Text>
@@ -98,7 +98,7 @@ export function CapabilityStatementDocument() {
         </Text>
 
         <Text style={styles.footer}>
-          {business.legalEntity} · Company No. {ph(business.companyNumber)} · VAT No.{" "}
+          {ph(business.legalEntity)} · Company No. {ph(business.companyNumber)} · VAT No.{" "}
           {ph(business.vatNumber)} · This document contains placeholder facts and must not be
           issued to a live tender until every PLACEHOLDER field above is replaced with a
           confirmed, evidenceable value.

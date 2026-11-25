@@ -1,334 +1,157 @@
 "use client";
 
-import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useDivision } from "@/components/division/division-provider";
 import { business } from "@/lib/content/business";
-import { FactOrPlaceholder } from "@/components/ui/placeholder";
+import { phoneLink } from "@/lib/content/contact-links";
+import { FROM_PRICE_GBP, FROM_MONTHLY_GBP } from "@/lib/quote/pricing";
 import { track } from "@/lib/analytics";
+import { QuickPrice } from "@/components/home/quick-price";
+import { Arrow, Tick } from "@/components/ui/icons";
 
-/**
- * Hero pattern: BENTO (art-directions.md §hero catalog 4) — one headline cell
- * plus proof cells in an asymmetric grid.
- *
- * Chosen over the split-editorial and big-type patterns for a specific
- * reason: this business has no photography and no published proof yet, so a
- * pattern that leans on a hero image or on a single claim would have nothing
- * to put in it. A bento's cells can be filled with things that are true on
- * day one — coverage, commitments, the two divisions — and it degrades
- * gracefully as real facts arrive to replace them.
- */
+const gbp = (n: number) => `£${n.toLocaleString("en-GB")}`;
 
 const COPY = {
-  commercial: {
-    eyebrow: "Mechanical · PPM · Statutory compliance",
-    // Was three short sentences ("One contract. Every statutory
-    // certificate. One renewal date.") — a fresh reviewer found that at
-    // 375px this wrapped to a 6-line staircase with "Every" and the second
-    // "One" stranded alone on their own line, where the two-sentence
-    // domestic headline below wrapped cleanly. Two things fixed it, and
-    // neither alone was enough: joining the last two clauses with an em
-    // dash removes one sentence break, and the headline cell's own mobile
-    // padding (below, in Hero()) was stacking on top of the section's,
-    // losing 23% of the viewport to padding before any text could render.
-    // (text-wrap:pretty and a non-breaking space between "Every" and
-    // "statutory" were tried first and did nothing — overflow-wrap:anywhere
-    // on body permits a break anywhere, nbsp included, once a line is
-    // otherwise too tight — so both approaches were dropped in favour of
-    // these two.) Verified by screenshot: 6 lines to 5, no isolated
-    // single-word lines.
-    headline: "One contract. Every statutory certificate — one renewal date.",
-    sub: "PPM and reactive cover from a single site to a multi-site portfolio, across the West Midlands. Send us the ITT and completed PQQ documentation comes back within 24 hours.",
-    primaryCta: { label: "Get the capability statement", href: "/capability" },
-    secondaryCta: { label: "Submit a tender enquiry", href: "/tenders" },
-    // Two fields is the real cost of the PDF, so say two fields. Claiming
-    // "no account needed · issued immediately" in front of a form reads as
-    // a bait-and-switch the moment the form appears.
-    reassurance: "Name and work email · PDF downloads on the spot · RAMS before every mobilisation",
-  },
   domestic: {
-    eyebrow: "Boilers · Heating · Emergency plumbing",
-    headline: "Priced before we start. Fixed until we finish.",
-    sub: "Gas Safe registered engineers who quote the job and then do the job. Build your own boiler price in about two minutes — no salesperson, and no home visit needed to get a number.",
-    primaryCta: { label: "Build my boiler price", href: "/boiler-quote" },
-    secondaryCta: { label: "How we price", href: "/prices" },
-    // Says what the quote actually costs the reader in time and detail. The
-    // previous line ("PDF issued immediately · no account needed") oversold a
-    // funnel that is eight questions long and ends at a contact-details gate.
-    reassurance: "Eight questions, about two minutes · No callout fee on quoted work · No obligation",
+    headline: "New boiler installation at a fixed price.",
+    sub: `Get a price online in about two minutes — no salesperson, no home visit needed. Fitted by Gas Safe registered engineers based in ${business.base.split(",")[0]}.`,
+    primary: { label: "Get my fixed price", href: "/boiler-quote" },
+    ticks: [
+      "The price we quote is the price you pay",
+      "Fitted by our own Gas Safe registered engineers",
+      "Two-hour arrival windows, and we ring ahead",
+    ],
+  },
+  commercial: {
+    headline: "Mechanical contracting with the paperwork done first.",
+    sub: "PPM and reactive cover from a single site to a multi-site portfolio across the West Midlands. Send the ITT and completed PQQ documentation comes back within 24 hours.",
+    primary: { label: "Get the capability statement", href: "/capability" },
+    ticks: [
+      "PQQ documentation back within 24 hours",
+      "RAMS issued before every mobilisation",
+      "One contract, one renewal date, one set of certificates",
+    ],
   },
 } as const;
-
-/**
- * Keeps "word —" together as one unbreakable unit so an em dash can never
- * start a line on its own — confirmed the orphan by screenshot on the
- * commercial headline at 375px ("certificate" ending one line, "— one"
- * starting the next). The first attempt guarded "— one" (dash attached to
- * the WORD AFTER it) instead — wrong pairing: that only stops "one" being
- * split from the dash, it does nothing to stop the browser breaking the
- * line immediately before the guarded unit, which is exactly what was
- * happening. Guarding "certificate —" (dash attached to the word BEFORE
- * it) is what actually keeps the dash trailing the line above rather than
- * leading the line below. A non-breaking space does NOT work for either
- * pairing: body's overflow-wrap:anywhere permits a break at an nbsp too,
- * once a line is judged too tight. A white-space:nowrap span is a
- * different mechanism — it removes the break opportunity from the
- * line-filling algorithm entirely rather than hiding it behind an
- * invisible character — and does hold. No-op for headlines without an em
- * dash (the domestic copy).
- */
-function renderHeadline(headline: string): ReactNode {
-  // String slicing, not a regex: a greedy (.*) before \S+ backtracks to the
-  // minimum the rest of the pattern needs, which is one character — the
-  // first version of this function shipped matching "e —" instead of
-  // "certificate —" for exactly that reason, silently guarding the wrong
-  // three characters. Explicit indices don't have that failure mode.
-  const dashAt = headline.indexOf(" — ");
-  if (dashAt === -1) return headline;
-  const beforeDash = headline.slice(0, dashAt);
-  const afterDash = headline.slice(dashAt + 3);
-  const lastSpaceAt = beforeDash.lastIndexOf(" ");
-  const before = beforeDash.slice(0, lastSpaceAt + 1);
-  const lastWord = beforeDash.slice(lastSpaceAt + 1);
-  return (
-    <>
-      {before}
-      <span style={{ whiteSpace: "nowrap" }}>{lastWord} —</span> {afterDash}
-    </>
-  );
-}
 
 export function Hero() {
   const { division } = useDivision();
   const copy = COPY[division];
-  const isCommercial = division === "commercial";
-
-  const fg = isCommercial ? "var(--paper)" : "var(--ink)";
-  const muted = isCommercial ? "var(--steel-dim)" : "var(--steel)";
-  const rule = isCommercial ? "var(--border-hairline-dark)" : "var(--border-hairline)";
-  // Copper needs a different value per surface to hold AA: --copper itself is
-  // a border colour and only reaches 4.46:1 as text on --paper.
-  const accent = isCommercial ? "var(--copper-bright)" : "var(--copper-ink)";
+  const phone = phoneLink();
+  const isDomestic = division === "domestic";
 
   return (
-    <section
-      className={`relative overflow-hidden ${isCommercial ? "grain" : ""}`}
-      style={{
-        background: isCommercial
-          ? "linear-gradient(158deg, var(--ink) 0%, var(--ink) 42%, var(--flame-deep) 132%)"
-          : "var(--paper)",
-        color: fg,
-      }}
-    >
-      {/* Blueprint hairline grid — used once, here, so it stays a signature
-          rather than wallpaper. */}
-      <div
-        aria-hidden="true"
-        className="blueprint-grid pointer-events-none absolute inset-0"
-        style={{ opacity: isCommercial ? 0.5 : 0.35 }}
-      />
-      {isCommercial && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: "radial-gradient(58% 46% at 18% 14%, var(--flame) 0%, transparent 68%)",
-            opacity: 0.3,
-          }}
-        />
-      )}
+    <section className="relative overflow-hidden" style={{ background: "var(--paper)" }}>
+      <div className="container-x pt-6 sm:pt-12 lg:pt-16">
+        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-8">
+          {/* Copy */}
+          <div className="lg:col-span-6">
+            <h1
+              className="font-display font-display-xl"
+              style={{ fontSize: "var(--text-hero)", color: "var(--ink)" }}
+            >
+              {copy.headline}
+            </h1>
+            <p className="mt-4 max-w-[50ch] text-base sm:mt-5 sm:text-lg" style={{ color: "var(--steel)" }}>
+              {copy.sub}
+            </p>
 
-      <div
-        className="relative z-10 mx-auto max-w-[100rem] px-6"
-        style={{
-          paddingTop: "clamp(1.75rem, 0.4rem + 4.2vw, 6rem)",
-          paddingBottom: "clamp(2rem, 0.6rem + 4.2vw, 6rem)",
-        }}
-      >
-        {/* Hairlines are drawn as real borders rather than by showing a
-            container background through 1px grid gaps: the headline cell is
-            transparent so the section gradient reads through it, and a gap
-            trick would have flooded that cell with the rule colour. */}
-        <div className="grid lg:grid-cols-12">
-          {/* Headline cell */}
-          <div
-            // px-0 below sm, not px-5: this cell's own horizontal padding
-            // stacked on top of the section's own px-6, so at 375px the
-            // headline column was losing 88px (23% of the viewport) to
-            // padding before any text could render — see the headline
-            // comment in COPY above for the wrap bug this caused. The
-            // section's px-6 alone is enough edge spacing at this width;
-            // sm:p-8/lg:p-10 restore the cell's own padding as soon as
-            // there's room to spare.
-            className="flex flex-col justify-between gap-6 px-0 py-6 sm:gap-8 sm:p-8 lg:col-span-8 lg:p-10"
-            style={{ borderTop: `1px solid ${rule}`, borderBottom: `1px solid ${rule}` }}
-          >
-            <div>
-              <span className="font-mono-label" style={{ color: accent }}>
-                {copy.eyebrow}
-              </span>
-              {/* --text-hero, not --text-5xl: the 44px floor ran this to eight
-                  lines on a 375px phone and pushed the primary CTA off the
-                  fold. Sub copy is clamped too so hero + CTA clear 812px.
-                  textWrap "pretty" (over .font-display's default "balance")
-                  avoids a lone short word stranded alone on the final line —
-                  a real improvement on its own, but not what fixed the
-                  6-line commercial-headline wrap a fresh reviewer found; see
-                  the headline comment in COPY above for what actually did. */}
-              <h1
-                className="font-display font-display-xl mt-4 sm:mt-6"
-                // overflowWrap normal: body's overflow-wrap:anywhere is a
-                // last-resort rule that, per spec, can still insert a break
-                // inside a white-space:nowrap span if it decides a line is
-                // otherwise too tight — which is exactly what kept undoing
-                // renderHeadline's guard below, three attempts in a row,
-                // until this line existed. Safe to turn off here specifically:
-                // every word in both headlines is short enough to wrap
-                // normally without it; "anywhere" exists site-wide for
-                // genuinely unbreakable strings (long postcodes, reference
-                // numbers), not natural-language headline text.
-                style={{ color: fg, fontSize: "var(--text-hero)", textWrap: "pretty", overflowWrap: "normal" }}
-              >
-                {renderHeadline(copy.headline)}
-              </h1>
-              <p
-                className="mt-4 max-w-[46ch] sm:mt-7"
-                style={{
-                  color: muted,
-                  fontSize: "clamp(1rem, 0.94rem + 0.28vw, 1.125rem)",
-                }}
-              >
-                {copy.sub}
+            {isDomestic && (
+              <p className="mt-5 text-base" style={{ color: "var(--ink)" }}>
+                New boilers from <strong className="tnum">{gbp(FROM_PRICE_GBP)}</strong> or from{" "}
+                <strong className="tnum">£{FROM_MONTHLY_GBP} a month</strong>
+                <span style={{ color: "var(--steel)" }}>, fully fitted.*</span>
               </p>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-3 sm:mt-7">
+              <Link
+                href={copy.primary.href}
+                onClick={() => track("cta_click", { location: "hero", action: "primary" })}
+                className="btn btn--primary btn--lg"
+              >
+                {copy.primary.label}
+                <Arrow />
+              </Link>
+              <Link
+                href={phone.href}
+                onClick={() => track("cta_click", { location: "hero", action: "call" })}
+                className="btn btn--secondary btn--lg"
+              >
+                {phone.isDirect ? `Call ${phone.label}` : "Request a callback"}
+              </Link>
             </div>
 
-            <div>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href={copy.primaryCta.href}
-                  onClick={() => track("cta_click", { location: "hero", action: "primary" })}
-                  className="btn btn--primary"
-                >
-                  {copy.primaryCta.label}
+            <ul className="ticks mt-8">
+              {copy.ticks.map((tick) => (
+                <li key={tick}>
+                  <span className="tick" aria-hidden="true">
+                    <Tick />
+                  </span>
+                  <span className="font-medium" style={{ color: "var(--ink)" }}>
+                    {tick}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {isDomestic && (
+              <p className="mt-6 text-sm" style={{ color: "var(--steel)" }}>
+                Boiler broken down, or a leak?{" "}
+                <Link href="/emergency" className="link-draw font-semibold" style={{ color: "var(--amber-ink)" }}>
+                  Emergency help →
                 </Link>
-                <Link
-                  href={copy.secondaryCta.href}
-                  onClick={() => track("cta_click", { location: "hero", action: "secondary" })}
-                  className={`btn ${isCommercial ? "btn--secondary-dark" : "btn--secondary"}`}
-                >
-                  {copy.secondaryCta.label}
-                </Link>
-              </div>
-              <p className="font-mono-label mt-4" style={{ color: muted, letterSpacing: "0.1em" }}>
-                {copy.reassurance}
               </p>
-            </div>
+            )}
           </div>
 
-          {/* Proof cells — everything here is true today. */}
-          <div
-            className="hero-proof grid lg:col-span-4"
-            style={{
-              borderTop: `1px solid ${rule}`,
-              borderBottom: `1px solid ${rule}`,
-              ["--rule" as string]: rule,
-            }}
-          >
-            {[
-              {
-                label: "Based",
-                value: business.base,
-                foot: `${business.coverage.length} towns covered`,
-              },
-              {
-                label: isCommercial ? "PQQ turnaround" : "Arrival windows",
-                value: isCommercial ? "24 hours" : "Two hours",
-                foot: isCommercial
-                  ? "From receipt of the ITT, in writing"
-                  : "And a call when we leave the job before yours",
-              },
-              {
-                label: isCommercial ? "RAMS" : "Callout fee on quoted work",
-                value: isCommercial ? "Before every mobilisation" : "None",
-                foot: isCommercial
-                  ? "With your site team before anyone arrives"
-                  : "Pricing the job costs you nothing",
-              },
-              {
-                label: "Gas Safe register",
-                // Until the registration number is confirmed this cell says
-                // something true and useful rather than showing a customer an
-                // amber chip in the hero: how to check any engineer, on the
-                // official register, before letting them touch a boiler.
-                value: business.gasSafeNumber ?? "Check any engineer's ID",
-                placeholderLabel: "GAS SAFE NUMBER",
-                // Until the number is confirmed, this cell earns its place by
-                // telling people how to check any engineer rather than just
-                // showing them a gap.
-                foot: business.gasSafeNumber
-                  ? "Both directors are registered engineers"
-                  : "Ask any engineer for their ID card and check it at gassaferegister.co.uk",
-              },
-            ].map((cell, index) => (
-              <ProofCell
-                key={cell.label}
-                label={cell.label}
-                value={cell.value}
-                foot={cell.foot}
-                placeholderLabel={cell.placeholderLabel}
-                dark={isCommercial}
-                rule={rule}
-                first={index === 0}
+          {/* Visual */}
+          <div className="lg:col-span-6">
+            <div
+              className="relative overflow-hidden"
+              style={{
+                background: "var(--slate-deep)",
+                borderRadius: "var(--radius-lg)",
+                aspectRatio: "4 / 3",
+              }}
+            >
+              <div
+                aria-hidden="true"
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(70% 60% at 50% 40%, rgba(47,211,122,0.22) 0%, rgba(47,211,122,0) 70%)",
+                }}
               />
-            ))}
+              <Image
+                src="/home-cutaway.webp"
+                alt="Cutaway illustration of a two-storey house showing the boiler, hot water cylinder and pipework"
+                width={1400}
+                height={933}
+                priority
+                sizes="(min-width: 1024px) 40vw, 100vw"
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{ mixBlendMode: "lighten", transform: "scale(1.04)" }}
+              />
+            </div>
           </div>
         </div>
+
+        {isDomestic && (
+          <p className="mt-6 text-xs" style={{ color: "var(--steel)" }}>
+            *Indicative, based on a like-for-like combi swap. Your fixed price is confirmed in writing after a
+            survey and does not change afterwards.
+          </p>
+        )}
       </div>
+
+      {isDomestic && (
+        <div className="container-x pt-10 sm:pt-14">
+          <QuickPrice />
+        </div>
+      )}
     </section>
   );
 }
 
-function ProofCell({
-  label,
-  value,
-  foot,
-  dark,
-  rule,
-  first,
-  placeholderLabel,
-}: {
-  label: string;
-  value: string | null;
-  foot: string;
-  dark: boolean;
-  rule: string;
-  first: boolean;
-  placeholderLabel?: string;
-}) {
-  return (
-    <div
-      className="flex flex-col gap-1.5 p-6 lg:p-7"
-      style={{
-        /* Opaque, not a translucent panel over the gradient: a semi-transparent
-           surface makes the text contrast behind it depend on where the
-           gradient happens to be, which is unverifiable and drifts as the
-           gradient changes. */
-        background: dark ? "var(--ink)" : "var(--paper-raised)",
-        borderTop: first ? undefined : `1px solid ${rule}`,
-      }}
-    >
-      <span className="font-mono-label" style={{ color: dark ? "var(--steel-dim)" : "var(--steel)" }}>
-        {label}
-      </span>
-      <span
-        className="font-display text-xl leading-tight"
-        style={{ color: dark ? "var(--paper)" : "var(--ink)" }}
-      >
-        <FactOrPlaceholder value={value} label={placeholderLabel ?? label.toUpperCase()} compact />
-      </span>
-      <span className="text-sm" style={{ color: dark ? "var(--steel-dim)" : "var(--steel)" }}>
-        {foot}
-      </span>
-    </div>
-  );
-}

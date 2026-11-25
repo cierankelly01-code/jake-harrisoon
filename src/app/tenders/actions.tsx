@@ -124,7 +124,7 @@ export async function submitTenderEnquiry(
   const pdfBuffer = await renderToBuffer(<CapabilityStatementDocument />);
   await sendEmail({
     to: parsed.data.email,
-    subject: "Marmion Building Services — Tender enquiry received",
+    subject: "Hartson Heating — Tender enquiry received",
     html: `<p>Hi ${safeContact},</p><p>Thanks — we've received your enquiry for ${safeOrg}. We return completed PQQ documentation within 24 hours. Our capability statement is attached in the meantime.</p>`,
     attachments: [{ filename: "marmion-capability-statement.pdf", content: pdfBuffer }],
   });

@@ -12,7 +12,7 @@ import { track } from "@/lib/analytics";
  *
  * Deliberately NOT gated behind any pending client fact (CONTENT_NEEDED.md):
  * every step below is generic, industry-standard safety guidance, not a
- * claim about Marmion specifically, and every CTA resolves through the same
+ * claim about Hartson specifically, and every CTA resolves through the same
  * contact-links.ts fallback chain as the rest of the site. The one phone
  * number on this page that isn't routed through that fallback is the
  * National Gas Emergency Service — a nationwide, publicly published number,
@@ -78,7 +78,7 @@ export function EmergencyTriage() {
       {/* Always visible, never collapsed — the one scenario where making
           someone click to reveal safety information would be a real harm.
           0800 111 999 is the National Gas Emergency Service: nationwide,
-          free, 24 hours, run by the gas network — not Marmion, and not
+          free, 24 hours, run by the gas network — not Hartson, and not
           something CONTENT_NEEDED.md tracks, because it isn't our number to
           confirm or a claim about our business. */}
       <section
@@ -214,7 +214,7 @@ export function EmergencyTriage() {
           the homepage services grid — restated here, not invented here. */}
       <section
         aria-labelledby="emergency-cta-heading"
-        className="border-t"
+        className="border-t band-green"
         style={{ background: "var(--flame)", borderColor: "var(--border-hairline-dark)" }}
       >
         <div
@@ -222,10 +222,13 @@ export function EmergencyTriage() {
           style={{ paddingTop: "var(--space-section-dense)", paddingBottom: "var(--space-section-dense)" }}
         >
           <div>
-            <h2 id="emergency-cta-heading" className="font-display max-w-[22ch] text-2xl sm:text-3xl" style={{ color: "var(--paper)" }}>
+            {/* Near-black on the green band, not white: white on `--flame`
+                measures 2.0:1 and axe failed both of these as serious
+                contrast violations. `--ink` on `--flame` is 9.9:1. */}
+            <h2 id="emergency-cta-heading" className="font-display max-w-[22ch] text-2xl sm:text-3xl" style={{ color: "var(--ink)" }}>
               Done the checks? Get someone out.
             </h2>
-            <p className="mt-3 max-w-[42ch] text-sm" style={{ color: "var(--paper)", opacity: 0.85 }}>
+            <p className="mt-3 max-w-[42ch] text-sm" style={{ color: "var(--ink)" }}>
               Two-hour arrival windows, and we ring when we leave the job before yours. No callout fee
               on work you&apos;ve accepted a price for.
             </p>
@@ -238,14 +241,6 @@ export function EmergencyTriage() {
               style={{ background: "var(--ink)", color: "var(--paper)" }}
             >
               {phone.isDirect ? `Call ${phone.label}` : "Request a callback"}
-            </Link>
-            <Link
-              href="/boiler-quote"
-              onClick={() => track("cta_click", { location: "emergency", action: "secondary" })}
-              className="btn"
-              style={{ border: "1px solid var(--paper)", color: "var(--paper)" }}
-            >
-              Build a boiler price instead
             </Link>
           </div>
         </div>

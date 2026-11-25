@@ -1,11 +1,12 @@
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import type { QuoteTier } from "@/lib/quote/pricing";
+import { business } from "@/lib/content/business";
 
-const INK = "#0B0E14";
-const FLAME = "#1F5FE0";
-const COPPER = "#A6613C";
-const STEEL = "#6B7684";
-const PAPER = "#F7F6F3";
+const INK = "#0B0F0D";
+const FLAME = "#0B5C33";
+const COPPER = "#0A6B3A";
+const STEEL = "#55605A";
+const PAPER = "#F4F7F4";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontFamily: "Helvetica", color: INK, backgroundColor: PAPER },
@@ -33,12 +34,12 @@ export function BoilerQuoteDocument({
   quoteRef: string;
 }) {
   return (
-    <Document title={`Marmion Boiler Quote — ${quoteRef}`}>
+    <Document title={`Hartson Boiler Quote — ${quoteRef}`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.wordmark}>MARMION</Text>
-            <Text style={styles.subWordmark}>BUILDING SERVICES</Text>
+            <Text style={styles.wordmark}>HARTSON</Text>
+            <Text style={styles.subWordmark}>HEATING</Text>
           </View>
           <Text style={styles.docType}>BOILER QUOTE · {quoteRef}</Text>
         </View>
@@ -65,7 +66,12 @@ export function BoilerQuoteDocument({
         ))}
 
         <Text style={styles.footer}>
-          Marmion Building Services Ltd. Indicative pricing only, generated {new Date().toLocaleDateString("en-GB")}.
+          {/* Trading name, never a registered one. `business.legalEntity` is
+              deliberately null; "Hartson Heating Ltd" was hardcoded here by
+              the rename and is a company nobody has confirmed exists. This
+              is a priced quotation, so that is a misrepresentation. */}
+          {business.tradingName}. Indicative pricing only, generated{" "}
+          {new Date().toLocaleDateString("en-GB")}.
           Subject to a free survey before any work begins.
         </Text>
       </Page>
