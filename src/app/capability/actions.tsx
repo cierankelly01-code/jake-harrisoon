@@ -58,7 +58,7 @@ export async function downloadCapabilityStatement(
 
   await sendEmail({
     to: parsed.data.email,
-    subject: "Marmion Building Services — Capability Statement",
+    subject: "Hartson Heating — Capability Statement",
     html: `<p>Hi ${safeName},</p><p>Attached is our capability statement. If you have an ITT or specification, send it to ${escapeHtml(business.emailTenders ?? "our tenders address")} — we return completed PQQ documentation within 24 hours.</p>`,
     attachments: [{ filename: "marmion-capability-statement.pdf", content: pdfBuffer }],
   });

@@ -6,11 +6,20 @@
  */
 
 export const business = {
-  tradingName: "Marmion",
-  legalEntity: "Marmion Building Services Ltd",
+  /** Trading name as it appears on the vans Jake sent (27 Oct): "HARTSON
+   *  HEATING", with the strapline "Warmer homes. Better living." Spelling
+   *  taken from the artwork, not from dictation — confirm before launch. */
+  tradingName: "Hartson Heating",
+  strapline: "Warmer homes. Better living.",
+  /** The registered company name is NOT the trading name until Companies
+   *  House says so. Was auto-filled as "Hartson Heating Ltd" during the
+   *  rename from Marmion; that was an invention and has been reverted to
+   *  null. Legal pages name the data controller, so a guess here is a
+   *  misrepresentation, not a typo. */
+  legalEntity: null as string | null,
   divisions: {
-    commercial: "Marmion Commercial",
-    domestic: "Marmion Domestic",
+    commercial: "Hartson Commercial",
+    domestic: "Hartson Domestic",
   },
   directors: [
     { firstName: "Jake", surname: null as string | null, qualification: "Gas Safe registered engineer" },
@@ -18,6 +27,27 @@ export const business = {
   ],
   ownership: "50/50",
   base: "Tamworth, Staffordshire",
+  /**
+   * The towns the two-hour arrival window is actually promised in. The
+   * homepage used to claim "we keep the area small so a two-hour arrival
+   * window is something we can actually keep" directly above a list
+   * containing Birmingham, Solihull and Coventry — Coventry is roughly 30
+   * miles from Tamworth, and a local reading that stops believing the
+   * window. These are the ones inside it; everything else in `coverage`
+   * is still served, just not on that promise.
+   *
+   * Drive times have not been checked against a routing API — this split
+   * is by distance from Tamworth and needs the directors' sign-off.
+   */
+  coverageCore: [
+    "Tamworth",
+    "Lichfield",
+    "Polesworth",
+    "Kingsbury",
+    "Atherstone",
+    "Coleshill",
+    "Burntwood",
+  ],
   coverage: [
     "Tamworth",
     "Lichfield",

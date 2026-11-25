@@ -49,9 +49,11 @@ export function LocalBusinessSchema() {
     "@type": "Plumber",
     "@id": `${SITE_URL}/#business`,
     additionalType: "https://schema.org/HVACBusiness",
-    name: "Marmion Building Services",
+    name: "Hartson Heating",
     alternateName: business.tradingName,
-    legalName: business.legalEntity,
+    // Omitted entirely while the registered name is unconfirmed — an empty
+    // or guessed legalName in structured data is worse than none.
+    ...(business.legalEntity ? { legalName: business.legalEntity } : {}),
     url: SITE_URL,
     image: `${SITE_URL}/opengraph-image`,
     description:
@@ -78,7 +80,7 @@ export function LocalBusinessSchema() {
     // The two divisions, as the services they actually are.
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: "Marmion Building Services — divisions",
+      name: "Hartson Heating — divisions",
       itemListElement: [
         {
           "@type": "Offer",

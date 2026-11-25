@@ -18,7 +18,7 @@ const EXCLUSIONS = [
   {
     title: "The first 14 days",
     detail:
-      "Cover starts 14 days after your first payment. It stops people signing up with a boiler that has already failed — which is what keeps the price where it is for everyone else.",
+      "Cover starts 14 days after your first payment. If the boiler has already failed when you sign up, that first repair is quoted separately.",
   },
   {
     title: "Pre-existing faults",
@@ -96,11 +96,11 @@ export default async function CarePlansPage({
               Care plans
             </span>
             <h1 className="font-display font-display-xl mt-5 text-4xl">
-              One monthly payment. No surprise call-out bills.
+              Boiler cover from one monthly payment.
             </h1>
             <p className="mt-6 max-w-[48ch] text-lg" style={{ color: "var(--steel-dim)" }}>
-              Annual service, gas safety certificate, breakdown cover and priority callout. Pick the
-              level that matches how much you want to think about your boiler.
+              Annual service, gas safety certificate, breakdown cover and priority callout. Three levels,
+              cancel any time.
             </p>
           </div>
           <dl className="grid grid-cols-2 gap-6 self-end lg:col-span-5">
@@ -151,9 +151,8 @@ export default async function CarePlansPage({
             The exclusions, up front rather than in the small print.
           </h2>
           <p className="mt-5 max-w-[52ch] text-base" style={{ color: "var(--steel)" }}>
-            Every plan like this has limits. Ours are on this page rather than four clicks away,
-            because finding them out at the point of a breakdown is how people end up hating their
-            cover provider.
+            Every plan like this has limits. Ours are here on the page, so you know them before you
+            sign up rather than when something breaks.
           </p>
 
           <div className="mt-10 grid gap-px md:grid-cols-2" style={{ background: "var(--border-hairline)" }}>
@@ -236,13 +235,19 @@ export default async function CarePlansPage({
                 Before you hand over a card.
               </h2>
             </div>
-            <dl className="lg:col-span-8">
+            {/* Not a <dl>. A definition list may only directly contain
+                <dt>, <dd>, <div>, <script> or <template>, so wrapping each
+                pair in <details><summary> made the <dt> and <dd> orphans —
+                axe flagged both `definition-list` and `dlitem` as serious.
+                <details>/<summary> is already an accessible disclosure
+                pattern and needs no list semantics on top. */}
+            <div className="lg:col-span-8">
               {FAQ.map((item) => (
                 <details key={item.q} name="care-faq" className="group border-b" style={{ borderColor: "var(--border-hairline)" }}>
                   <summary className="flex items-start justify-between gap-6 py-5">
-                    <dt className="font-display text-xl leading-snug" style={{ color: "var(--ink)" }}>
+                    <span className="font-display text-xl leading-snug" style={{ color: "var(--ink)" }}>
                       {item.q}
-                    </dt>
+                    </span>
                     <span
                       aria-hidden="true"
                       className="mt-1.5 shrink-0 transition-transform group-open:rotate-45"
@@ -255,14 +260,14 @@ export default async function CarePlansPage({
                   </summary>
                   <div className="accordion-panel">
                     <div>
-                      <dd className="max-w-[62ch] pb-6 pr-10 text-base" style={{ color: "var(--steel)" }}>
+                      <p className="max-w-[62ch] pb-6 pr-10 text-base" style={{ color: "var(--steel)" }}>
                         {item.a}
-                      </dd>
+                      </p>
                     </div>
                   </div>
                 </details>
               ))}
-            </dl>
+            </div>
           </div>
         </section>
       </div>

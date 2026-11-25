@@ -8,7 +8,7 @@ import { CapabilityDownloadForm } from "@/components/forms/capability-download-f
 export const metadata: Metadata = {
   title: "Capability Statement",
   description:
-    "Full capability statement for Marmion Building Services — services, accreditations, insurance schedule, coverage and response SLAs. Download the PDF instantly.",
+    "Full capability statement for Hartson Heating — services, accreditations, insurance schedule, coverage and response SLAs. Download the PDF instantly.",
 };
 
 const SERVICES_COMMERCIAL = [
@@ -100,7 +100,11 @@ export default function CapabilityPage() {
                 Company overview
               </h2>
               <p style={{ color: "var(--steel-dim)" }}>
-                {business.legalEntity} — {business.divisions.commercial} and{" "}
+                {/* Reworded so the sentence survives a null registered name
+                    — it used to open with a bare em dash once legalEntity
+                    went to null. Route is gated today, but this is a formal
+                    tender document the day COMMERCIAL_ENABLED flips back. */}
+                {business.tradingName} runs {business.divisions.commercial} and{" "}
                 {business.divisions.domestic}, based in {business.base}. Directed by{" "}
                 {business.directors.map((d) => d.firstName).join(" and ")}, {business.ownership},
                 both Gas Safe registered engineers.

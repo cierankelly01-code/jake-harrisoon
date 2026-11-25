@@ -7,7 +7,7 @@ import { business } from "@/lib/content/business";
 export const metadata: Metadata = {
   title: "Tenders & PQQ Enquiries",
   description:
-    "Submit an ITT, specification or PQQ enquiry to Marmion Building Services. Completed PQQ documentation returned within 24 hours.",
+    "Submit an ITT, specification or PQQ enquiry to Hartson Heating. Completed PQQ documentation returned within 24 hours.",
 };
 
 /**

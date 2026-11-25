@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useId, useRef, useState } from "react";
-import { CARE_PLANS, type CarePlanTier } from "@/lib/care-plans/tiers";
+import { CARE_PLANS, CARE_PLAN_PRICES_CONFIRMED, type CarePlanTier } from "@/lib/care-plans/tiers";
+import { Placeholder } from "@/components/ui/placeholder";
 import { signUpForCarePlan, type CarePlanActionState } from "@/app/care-plans/actions";
 import { TurnstileWidget } from "@/components/security/turnstile-widget";
 import { track } from "@/lib/analytics";
@@ -32,9 +33,9 @@ const inputStyle = {
 } as const;
 
 const TIER_PITCH: Record<CarePlanTier, string> = {
-  service: "The legal minimum, done on time.",
-  cover: "The one most people want: a breakdown stops being a bill.",
-  complete: "Everything wet in the house, not just the boiler.",
+  service: "One service a year, booked by us.",
+  cover: "The one we recommend: breakdowns are covered.",
+  complete: "Boiler, heating, radiators and plumbing, all covered.",
 };
 
 const TIER_CTA: Record<CarePlanTier, string> = {
@@ -83,21 +84,33 @@ export function CarePlansSection() {
               {recommended && (
                 <span
                   className="font-mono-label absolute -top-3 left-6 px-2.5 py-1"
-                  style={{ background: "var(--flame)", color: "var(--paper)", borderRadius: "var(--radius)" }}
+                  style={{ background: "var(--flame)", color: "var(--ink)", borderRadius: "var(--radius)" }}
                 >
-                  Most chosen
+                  Recommended
                 </span>
               )}
 
               <span className="font-mono-label" style={{ color: "var(--copper-ink)" }}>
                 {plan.name}
               </span>
-              <p className="font-mono tnum mt-3 text-3xl" style={{ color: "var(--ink)" }}>
-                £{plan.monthlyPriceGbp}
-                <span className="text-base" style={{ color: "var(--steel)" }}>
-                  /month
-                </span>
-              </p>
+              {/* Same gate as the homepage teaser. These were publishing a
+                  full tariff — £8/£14/£22 with VAT treatment, a £500 claim
+                  cap and a payment processor — one click from a homepage
+                  chip saying the prices were unconfirmed, on a site whose
+                  /prices page says nothing is signed off yet. Either the
+                  figures are real everywhere or nowhere. */}
+              {CARE_PLAN_PRICES_CONFIRMED ? (
+                <p className="font-mono tnum mt-3 text-3xl" style={{ color: "var(--ink)" }}>
+                  £{plan.monthlyPriceGbp}
+                  <span className="text-base" style={{ color: "var(--steel)" }}>
+                    /month
+                  </span>
+                </p>
+              ) : (
+                <p className="mt-3">
+                  <Placeholder label={`${plan.name.toUpperCase()} PLAN PRICE`} />
+                </p>
+              )}
               <p className="mt-3 min-h-[3rem] text-sm" style={{ color: "var(--steel)" }}>
                 {TIER_PITCH[plan.tier]}
               </p>
@@ -187,8 +200,11 @@ export function CarePlansSection() {
                   Set up the {CARE_PLANS.find((p) => p.tier === selectedTier)?.name} plan
                 </h3>
                 <p className="mt-2 text-sm" style={{ color: "var(--steel)" }}>
-                  £{CARE_PLANS.find((p) => p.tier === selectedTier)?.monthlyPriceGbp} a month. Payment is
-                  taken by Stripe on the next screen — nothing is charged until you confirm it there.
+                  {CARE_PLAN_PRICES_CONFIRMED
+                    ? `£${CARE_PLANS.find((p) => p.tier === selectedTier)?.monthlyPriceGbp} a month. `
+                    : "We will confirm the monthly price with you before anything is set up. "}
+                  Payment is taken by Stripe on the next screen — nothing is charged until you
+                  confirm it there.
                 </p>
               </div>
 

@@ -1,24 +1,8 @@
 import { business } from "@/lib/content/business";
-import { Counter } from "@/components/ui/counter";
 
 /**
- * Hand-built schematic — not a literal geographic projection, and
- * deliberately not a Google Maps iframe (§8.1.10). Tamworth sits at the hub
- * with every covered town wired off it, mono-labelled, echoing the pipe-run
- * motif from the Docket art.
- *
- * Labels flip to the inside of the frame for nodes on the right-hand half,
- * so nothing runs past the viewBox edge — the previous version clipped
- * NUNEATON and very nearly clipped ATHERSTONE at every width. That flip fix
- * then created a different bug a fresh reviewer caught: Atherstone's y (216)
- * sat almost exactly on Tamworth's hub row (214), so the hub's own
- * rightward-reading label and Atherstone's flipped leftward-reading one
- * overlapped into "TAMWORTHERSTONE". Moved to y 250 — clear of the hub row,
- * still reads correctly relative to its real-world neighbours.
- *
- * Below ~640px the drawing is decorative and the named-town list carries the
- * information instead: 11px type inside a 720-wide viewBox is unreadable on
- * a phone, and the town names are what matters for local search anyway.
+ * A simple, honest map: Tamworth in the middle, the towns we cover around
+ * it. Positions are approximate relative bearings, not survey data.
  */
 const NODES: { name: string; x: number; y: number }[] = [
   { name: "Burton", x: 320, y: 58 },
@@ -26,7 +10,7 @@ const NODES: { name: string; x: number; y: number }[] = [
   { name: "Burntwood", x: 196, y: 190 },
   { name: "Lichfield", x: 288, y: 142 },
   { name: "Walsall", x: 140, y: 330 },
-  { name: "Tamworth", x: 372, y: 214 }, // hub
+  { name: "Tamworth", x: 372, y: 214 },
   { name: "Polesworth", x: 470, y: 158 },
   { name: "Kingsbury", x: 436, y: 288 },
   { name: "Atherstone", x: 548, y: 250 },
@@ -40,115 +24,82 @@ const NODES: { name: string; x: number; y: number }[] = [
 
 const VIEW_W = 700;
 const VIEW_H = 500;
-/** Right of this, labels sit to the left of their node and read right-to-left. */
 const FLIP_X = 400;
 
 export function ServiceAreaMap() {
-  // Falls back to the first node rather than asserting non-null: renaming the
-  // hub town in NODES would otherwise crash the homepage at `hub.x`.
   const hub = NODES.find((n) => n.name === "Tamworth") ?? NODES[0];
+  const hubTown = business.base.split(",")[0];
 
   return (
-    <section
-      aria-labelledby="coverage-heading"
-      className="mx-auto max-w-[100rem] px-6"
-      style={{ paddingTop: "var(--space-section)", paddingBottom: "var(--space-section)" }}
-    >
-      <div className="grid gap-6 sm:gap-10 lg:grid-cols-12 lg:gap-16">
-        <div className="lg:col-span-4">
-          <span className="section-index font-mono-label" data-index="07" style={{ color: "var(--copper-ink)" }}>
-            Coverage
+    <section aria-labelledby="coverage-heading" className="section--tight" style={{ background: "var(--paper-raised)" }}>
+      <div className="container-x grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-16">
+        <div className="lg:col-span-5">
+          <span className="font-mono-label" style={{ color: "var(--copper-ink)" }}>
+            Where we work
           </span>
-          <h2 id="coverage-heading" className="font-display mt-4 text-3xl" style={{ color: "var(--ink)" }}>
-            <Counter to={business.coverage.length} /> towns, worked from one base.
+          <h2 id="coverage-heading" className="font-display mt-3 text-3xl" style={{ color: "var(--ink)" }}>
+            {business.coverageCore.length} towns same-day,{" "}
+            {business.coverage.length - business.coverageCore.length} more booked in.
           </h2>
-          <p className="mt-5 max-w-[40ch] text-base" style={{ color: "var(--steel)" }}>
-            Everything runs out of {business.base}. That is deliberate — it is what makes a two-hour
-            arrival window a real commitment rather than an aspiration. If you are outside this list,
-            ask anyway; we will tell you straight whether we can cover you properly.
+          <p className="mt-4 text-base" style={{ color: "var(--steel)" }}>
+            The two-hour arrival window is a promise we only make where we can keep it. These are
+            the towns inside it:
           </p>
-
-          <ul className="mt-8 flex flex-wrap gap-2">
-            {business.coverage.map((town) => (
-              <li
-                key={town}
-                className="font-mono-label border px-3 py-2"
-                style={{
-                  borderColor: "var(--border-hairline)",
-                  color: "var(--ink)",
-                  borderRadius: "var(--radius)",
-                }}
-              >
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {business.coverageCore.map((town) => (
+              <li key={town} className="chip" style={{ background: "#fff" }}>
                 {town}
               </li>
             ))}
           </ul>
+
+          {/* Everything else we cover, stated separately. Listing Coventry
+              and Birmingham under a two-hour promise was a claim we cannot
+              keep — they are ~30 and ~20 miles out. They are still served;
+              the window just is not promised with them. */}
+          <p className="mt-6 text-base" style={{ color: "var(--steel)" }}>
+            We also work across{" "}
+            {business.coverage
+              .filter((town) => !(business.coverageCore as readonly string[]).includes(town))
+              .join(", ")
+              .replace(/, ([^,]*)$/, " and $1")}
+            , booked in rather than same-day. Just outside all of it? Ask anyway and we&rsquo;ll
+            tell you straight.
+          </p>
         </div>
 
-        <div
-          className="reveal-wipe hidden overflow-hidden border sm:block lg:col-span-8"
-          style={{
-            borderColor: "var(--border-hairline-dark)",
-            borderRadius: "var(--radius)",
-            background: "var(--ink)",
-          }}
-        >
+        <div className="card reveal-wipe hidden overflow-hidden md:block lg:col-span-7" style={{ background: "#fff" }}>
           <svg
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
             className="h-auto w-full"
             role="img"
-            aria-label={`Schematic of the service area, centred on ${business.base}, covering ${business.coverage.join(", ")}.`}
+            aria-label={`Map of the service area, centred on ${hubTown}, covering ${business.coverage.join(", ")}.`}
           >
+            <circle cx={hub.x} cy={hub.y} r="230" fill="var(--flame-tint)" opacity="0.7" />
+            <circle cx={hub.x} cy={hub.y} r="150" fill="var(--flame-tint)" />
             {NODES.filter((n) => n.name !== "Tamworth").map((n) => (
-              <line
-                key={n.name}
-                x1={hub.x}
-                y1={hub.y}
-                x2={n.x}
-                y2={n.y}
-                stroke="var(--copper)"
-                strokeWidth="1"
-                opacity="0.45"
-              />
+              <line key={n.name} x1={hub.x} y1={hub.y} x2={n.x} y2={n.y} stroke="var(--flame)" strokeWidth="1.5" opacity="0.18" />
             ))}
             {NODES.map((n) => {
               const isHub = n.name === "Tamworth";
               const flip = n.x > FLIP_X && !isHub;
               return (
                 <g key={n.name}>
-                  <circle
-                    cx={n.x}
-                    cy={n.y}
-                    r={isHub ? 7 : 4}
-                    fill={isHub ? "var(--flame)" : "var(--flame-glow)"}
-                  />
-                  {isHub && (
-                    <circle cx={n.x} cy={n.y} r="14" fill="none" stroke="var(--flame)" strokeWidth="1" opacity="0.6" />
-                  )}
+                  <circle cx={n.x} cy={n.y} r={isHub ? 9 : 5} fill={isHub ? "var(--flame)" : "#fff"} stroke="var(--flame)" strokeWidth="2" />
                   <text
-                    x={flip ? n.x - 10 : n.x + 10}
-                    y={n.y + 4}
-                    textAnchor={flip ? "end" : "start"}
-                    fontFamily="var(--font-mono)"
-                    fontSize="14"
-                    letterSpacing="0.05em"
-                    fill={isHub ? "var(--paper)" : "var(--steel-dim)"}
+                    x={isHub ? n.x : flip ? n.x - 12 : n.x + 12}
+                    y={n.y + (isHub ? -14 : 4)}
+                    textAnchor={isHub ? "middle" : flip ? "end" : "start"}
+                    fontFamily="var(--font-body)"
+                    fontSize={isHub ? 16 : 14}
+                    fontWeight={isHub ? 800 : 600}
+                    fill="var(--ink)"
                   >
-                    {n.name.toUpperCase()}
+                    {n.name}
                   </text>
                 </g>
               );
             })}
-            <text
-              x="28"
-              y={VIEW_H - 24}
-              fontFamily="var(--font-mono)"
-              fontSize="13"
-              letterSpacing="0.14em"
-              fill="var(--copper-bright)"
-            >
-              SCHEMATIC — NOT TO SCALE
-            </text>
           </svg>
         </div>
       </div>

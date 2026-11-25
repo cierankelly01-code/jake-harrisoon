@@ -5,7 +5,7 @@ import { carePlanSignupSchema } from "@/lib/validation/care-plans";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { getStripeClient } from "@/lib/stripe/server";
 import { protectFormSubmission } from "@/lib/security/guard";
-import { CARE_PLANS } from "@/lib/care-plans/tiers";
+import { CARE_PLANS, CARE_PLAN_PRICES_CONFIRMED } from "@/lib/care-plans/tiers";
 
 export type CarePlanActionState = {
   status: "idle" | "redirect" | "stub" | "error";
@@ -42,6 +42,23 @@ export async function signUpForCarePlan(
     // Only reachable if the <select>/hidden tier value diverges from
     // CARE_PLANS (e.g. a stale client bundle after a tier was renamed).
     return { status: "error", message: "That plan isn't available right now — please pick again." };
+  }
+
+  /**
+   * Do not take money against an unconfirmed price.
+   *
+   * The Stripe subscription is built from `plan.monthlyPriceGbp` with
+   * dynamic `price_data`, so flipping this on while the figures are
+   * starter numbers would charge a real card a price the directors have
+   * never signed off. The UI already hides the figures; this closes the
+   * route for anyone posting the form directly.
+   */
+  if (!CARE_PLAN_PRICES_CONFIRMED) {
+    return {
+      status: "error",
+      message:
+        "Care plan pricing is not published yet, so we cannot set one up online today. Send us an enquiry and we will confirm the monthly price with you first.",
+    };
   }
 
   const supabase = getSupabaseServiceClient();
@@ -87,7 +104,7 @@ export async function signUpForCarePlan(
           currency: "gbp",
           recurring: { interval: "month" },
           unit_amount: plan.monthlyPriceGbp * 100,
-          product_data: { name: `Marmion Care Plan — ${plan.name}` },
+          product_data: { name: `Hartson Care Plan — ${plan.name}` },
         },
         quantity: 1,
       },

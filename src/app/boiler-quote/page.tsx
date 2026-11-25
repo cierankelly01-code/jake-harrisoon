@@ -1,76 +1,57 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { QuoteWizard } from "@/components/quote/quote-wizard";
 import { DOMESTIC_PROMISES } from "@/lib/content/promises";
+import { Tick } from "@/components/ui/icons";
 
 export const metadata: Metadata = {
-  title: "Instant Boiler Quote",
+  title: "Get a Fixed Boiler Price",
   description:
-    "Answer eight questions and get three boiler price bands in about two minutes. No calls, no home visit, no obligation.",
+    "Answer eight quick questions and get a fixed-price range for a new boiler in about two minutes. No calls, no home visit, no obligation.",
 };
 
-/**
- * The wizard used to sit under a full-viewport headline in a narrow centred
- * column, so on a laptop the tool itself started below the fold with ~700px
- * of empty page either side of it. It now runs as a two-column layout: a
- * compact header and the reassurance rail on the left, the tool on the right
- * and on screen immediately.
- */
 export default function BoilerQuotePage() {
   return (
-    <div
-      className="mx-auto max-w-[100rem] px-6"
-      style={{ paddingTop: "var(--space-section-tight)", paddingBottom: "var(--space-section)" }}
-    >
-      <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-        <div className="lg:col-span-5">
+    <div className="container-x section--tight">
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div className="order-2 lg:order-1 lg:col-span-5">
           <span className="font-mono-label" style={{ color: "var(--copper-ink)" }}>
-            Instant boiler quote
+            New boiler quote
           </span>
-          <h1 className="font-display font-display-xl mt-4 text-3xl" style={{ color: "var(--ink)" }}>
-            Three price bands in about two minutes.
+          <h1 className="font-display mt-3" style={{ fontSize: "var(--text-3xl)", color: "var(--ink)" }}>
+            Your boiler price, in about two minutes.
           </h1>
-          <p className="mt-5 max-w-[42ch] text-lg" style={{ color: "var(--steel)" }}>
-            Eight questions, no phone call and nobody at your door. You get three bands now; the
-            fixed price is set after a free survey and does not move once it is.
+          <p className="mt-4 max-w-[44ch] text-base" style={{ color: "var(--steel)" }}>
+            {/* Was "you'll see three price bands straight away". Step 8 asks
+                for name, email, postcode and phone and then emails the
+                bands — so the page was promising the one thing the flow
+                does not do, on a site that sells "no salesperson, nothing
+                hidden". Either the bands show on screen ungated or the copy
+                says what actually happens; this is the copy fix. */}
+            Eight quick questions, then we email your three price bands. The fixed price is
+            confirmed after a free survey and doesn&rsquo;t move once it is.
           </p>
 
-          <ul className="mt-10 flex flex-col border-t" style={{ borderColor: "var(--border-hairline)" }}>
+          <ul className="ticks mt-8 hidden lg:flex">
             {DOMESTIC_PROMISES.map((promise) => (
-              <li key={promise.id} className="border-b py-4" style={{ borderColor: "var(--border-hairline)" }}>
-                <div className="flex gap-3">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    aria-hidden="true"
-                    className="mt-1 shrink-0"
-                  >
-                    <path d="M2 7.5L5.5 11L12 3.5" stroke="var(--flame)" strokeWidth="2" />
-                  </svg>
-                  <div>
-                    <p className="text-base font-medium" style={{ color: "var(--ink)" }}>
-                      {promise.title}
-                    </p>
-                    <p className="mt-1 text-sm" style={{ color: "var(--steel)" }}>
-                      {promise.proof}
-                    </p>
-                  </div>
-                </div>
+              <li key={promise.id}>
+                <span className="tick" aria-hidden="true">
+                  <Tick />
+                </span>
+                <span>
+                  <span className="block font-semibold" style={{ color: "var(--ink)" }}>
+                    {promise.title}
+                  </span>
+                  <span className="block text-sm" style={{ color: "var(--steel)" }}>
+                    {promise.proof}
+                  </span>
+                </span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="lg:col-span-7">
-          <div
-            className="border p-6 md:p-8"
-            style={{
-              borderColor: "var(--border-hairline)",
-              borderRadius: "var(--radius)",
-              background: "var(--surface-raised)",
-            }}
-          >
+        <div className="order-1 lg:order-2 lg:col-span-7">
+          <div className="card p-6 md:p-8" style={{ boxShadow: "var(--shadow-card)" }}>
             <QuoteWizard />
           </div>
         </div>

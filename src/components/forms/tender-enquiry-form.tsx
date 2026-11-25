@@ -119,7 +119,7 @@ export function TenderEnquiryForm() {
         type="submit"
         disabled={pending}
         className="font-mono-label self-start px-6 py-3.5 disabled:opacity-60"
-        style={{ background: "var(--flame)", color: "var(--paper)", borderRadius: "var(--radius)" }}
+        style={{ background: "var(--flame)", color: "var(--ink)", borderRadius: "var(--radius)" }}
       >
         {pending ? "Submitting…" : "Submit tender enquiry"}
       </button>

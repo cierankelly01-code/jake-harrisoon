@@ -8,7 +8,7 @@ import { LegalShell, LegalSection, LegalList, Term } from "@/components/legal/le
 export const metadata: Metadata = {
   title: "Privacy Notice",
   description:
-    "How Marmion Building Services collects, uses and stores personal data — including exactly what the instant boiler quote saves as you fill it in.",
+    "How Hartson Heating collects, uses and stores personal data — including exactly what the instant boiler quote saves as you fill it in.",
   robots: { index: true, follow: true },
 };
 
@@ -68,8 +68,16 @@ const RETENTION: { record: string; period: string; why: string }[] = [
 
 function RetentionTable() {
   return (
+    /* The table is wider than a phone, so this wrapper scrolls sideways.
+       A scrollable region that cannot be reached by keyboard strands anyone
+       not using a pointer — axe flags it `scrollable-region-focusable`
+       (serious). tabIndex makes it focusable; role + label tell a screen
+       reader what it is once focus lands there. */
     <div
       className="my-6 overflow-x-auto border"
+      tabIndex={0}
+      role="region"
+      aria-label="Data retention periods (scrolls sideways)"
       style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)" }}
     >
       <table className="w-full border-collapse text-left text-sm" style={{ minWidth: "40rem" }}>
@@ -139,7 +147,9 @@ export default function PrivacyPage() {
       {/* 01 ─────────────────────────────────────────────────────────── */}
       <LegalSection id="who-we-are" index={1} title="Who we are">
         <p>
-          <Term>{business.legalEntity}</Term> is the data controller for this website — meaning we
+          <Term>{business.legalEntity ?? business.tradingName}</Term>
+          {!business.legalEntity && <Placeholder label="REGISTERED COMPANY NAME" compact />} is the
+          data controller for this website — meaning we
           decide what personal data is collected here and what happens to it. We are a mechanical,
           electrical and plumbing contractor based in {business.base}.
         </p>
@@ -215,7 +225,7 @@ export default function PrivacyPage() {
           </p>
           <p className="mt-3 text-sm">
             The{" "}
-            <Link href="/boiler-quote" className="link-draw" style={{ color: "var(--flame)" }}>
+            <Link href="/boiler-quote" className="link-draw" style={{ color: "var(--copper-ink)" }}>
               instant boiler quote
             </Link>{" "}
             does not wait until you press submit. Every time you move to the next step, the
@@ -422,7 +432,7 @@ export default function PrivacyPage() {
           Nothing is kept indefinitely. Records tied to a legal obligation are kept for the
           statutory period that applies to them; everything else is deleted on the schedule below.
           You can ask us to delete yours sooner at any point — see{" "}
-          <a href="#rights" className="link-draw" style={{ color: "var(--flame)" }}>
+          <a href="#rights" className="link-draw" style={{ color: "var(--copper-ink)" }}>
             your rights
           </a>
           .
@@ -479,7 +489,7 @@ export default function PrivacyPage() {
         />
         <p>
           To use any of these, contact us through the{" "}
-          <Link href="/contact" className="link-draw" style={{ color: "var(--flame)" }}>
+          <Link href="/contact" className="link-draw" style={{ color: "var(--copper-ink)" }}>
             contact page
           </Link>
           . We will respond within one month. There is no charge, and you do not need to give a
@@ -491,7 +501,7 @@ export default function PrivacyPage() {
           <a
             href="https://ico.org.uk/make-a-complaint/"
             className="link-draw"
-            style={{ color: "var(--flame)" }}
+            style={{ color: "var(--copper-ink)" }}
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -511,7 +521,7 @@ export default function PrivacyPage() {
         </p>
         <p className="text-sm">
           Last updated {LAST_UPDATED}. See also our{" "}
-          <Link href="/terms" className="link-draw" style={{ color: "var(--flame)" }}>
+          <Link href="/terms" className="link-draw" style={{ color: "var(--copper-ink)" }}>
             terms of use
           </Link>
           .

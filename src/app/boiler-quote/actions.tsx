@@ -206,9 +206,9 @@ export async function completeQuote(
 
   await sendEmail({
     to: contact.data.email,
-    subject: "Your Marmion boiler quote",
+    subject: "Your Hartson boiler quote",
     html: `<p>Hi ${safeName},</p><p>Your indicative quote is attached. We'll be in touch to book a free survey and confirm the final price.</p>`,
-    attachments: [{ filename: "marmion-boiler-quote.pdf", content: pdfBuffer }],
+    attachments: [{ filename: "hartson-boiler-quote.pdf", content: pdfBuffer }],
   });
 
   return { status: "success", tiers, pdfBase64: pdfBuffer.toString("base64") };

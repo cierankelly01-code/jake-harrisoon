@@ -8,7 +8,7 @@ import { COMMERCIAL_ENABLED } from "@/lib/division-shared";
 export const metadata: Metadata = {
   title: "Terms of Use",
   description:
-    "The terms on which Marmion Building Services provides this website, including how instant boiler quotes, published prices, care plans and tender enquiries work.",
+    "The terms on which Hartson Heating provides this website, including how instant boiler quotes, published prices, care plans and tender enquiries work.",
   robots: { index: true, follow: true },
 };
 
@@ -41,8 +41,10 @@ export default function TermsPage() {
       {/* 01 */}
       <LegalSection id="who" index={1} title="Who these terms are from">
         <p>
-          This website is operated by <Term>{business.legalEntity}</Term>, a company registered in
-          England and Wales and based in {business.base}. In these terms, &ldquo;we&rdquo;,
+          This website is operated by{" "}
+          <Term>{business.legalEntity ?? business.tradingName}</Term>
+          {!business.legalEntity && <Placeholder label="REGISTERED COMPANY NAME" compact />}, based
+          in {business.base}. In these terms, &ldquo;we&rdquo;,
           &ldquo;us&rdquo; and &ldquo;our&rdquo; mean that company, and &ldquo;you&rdquo; means
           anyone using the site.
         </p>
@@ -91,7 +93,7 @@ export default function TermsPage() {
       <LegalSection id="instant-quote" index={3} title="The instant boiler quote">
         <p>
           The{" "}
-          <Link href="/boiler-quote" className="link-draw" style={{ color: "var(--flame)" }}>
+          <Link href="/boiler-quote" className="link-draw" style={{ color: "var(--copper-ink)" }}>
             instant boiler quote
           </Link>{" "}
           calculates a price from the answers you give. It is designed to be realistic rather than
@@ -118,7 +120,7 @@ export default function TermsPage() {
             </>,
             <>
               As explained in our{" "}
-              <Link href="/privacy" className="link-draw" style={{ color: "var(--flame)" }}>
+              <Link href="/privacy" className="link-draw" style={{ color: "var(--copper-ink)" }}>
                 privacy notice
               </Link>
               , the wizard saves your answers step by step, so a phone number entered part-way
@@ -132,7 +134,7 @@ export default function TermsPage() {
       <LegalSection id="published-prices" index={4} title="Published prices">
         <p>
           The prices on our{" "}
-          <Link href="/prices" className="link-draw" style={{ color: "var(--flame)" }}>
+          <Link href="/prices" className="link-draw" style={{ color: "var(--copper-ink)" }}>
             prices page
           </Link>{" "}
           are for straightforward jobs of the kind described, during normal working hours, within
@@ -157,7 +159,7 @@ export default function TermsPage() {
           items={[
             <>
               What each plan includes is set out on the{" "}
-              <Link href="/care-plans" className="link-draw" style={{ color: "var(--flame)" }}>
+              <Link href="/care-plans" className="link-draw" style={{ color: "var(--copper-ink)" }}>
                 care plans page
               </Link>
               . Anything outside that scope is chargeable at our normal rates, quoted first.
@@ -184,7 +186,7 @@ export default function TermsPage() {
               A pre-existing fault, an appliance over 15 years old or beyond economic repair, and
               damage rather than wear are all outside cover. These are set out in full, in plain
               words, on the{" "}
-              <Link href="/care-plans" className="link-draw" style={{ color: "var(--flame)" }}>
+              <Link href="/care-plans" className="link-draw" style={{ color: "var(--copper-ink)" }}>
                 care plans page
               </Link>{" "}
               — not buried here.
@@ -207,7 +209,7 @@ export default function TermsPage() {
               nav to reach it is off. */}
           Submitting an ITT, specification or PQQ through the{" "}
           {COMMERCIAL_ENABLED ? (
-            <Link href="/tenders" className="link-draw" style={{ color: "var(--flame)" }}>
+            <Link href="/tenders" className="link-draw" style={{ color: "var(--copper-ink)" }}>
               tender form
             </Link>
           ) : (
@@ -298,7 +300,7 @@ export default function TermsPage() {
       <LegalSection id="complaints" index={11} title="Complaints">
         <p>
           If something is wrong, tell us and we will put it right. Contact us through the{" "}
-          <Link href="/contact" className="link-draw" style={{ color: "var(--flame)" }}>
+          <Link href="/contact" className="link-draw" style={{ color: "var(--copper-ink)" }}>
             contact page
           </Link>
           .
@@ -345,7 +347,7 @@ export default function TermsPage() {
         </p>
         <p className="text-sm">
           Last updated {LAST_UPDATED}. See also our{" "}
-          <Link href="/privacy" className="link-draw" style={{ color: "var(--flame)" }}>
+          <Link href="/privacy" className="link-draw" style={{ color: "var(--copper-ink)" }}>
             privacy notice
           </Link>
           .

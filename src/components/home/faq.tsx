@@ -109,14 +109,21 @@ function buildFaq(division: "commercial" | "domestic"): FaqItem[] {
     },
     {
       q: "How quickly can someone come out?",
-      a: (
+      a: business.responseSla ? (
+        <>
+          Two-hour arrival windows, and we ring when we leave the job before yours. Our published
+          response time is {business.responseSla}.
+        </>
+      ) : (
         <>
           Two-hour arrival windows, and we ring when we leave the job before yours so you are not
-          sat waiting on a guess. Our published response SLA is{" "}
-          {chip(business.responseSla, "RESPONSE SLA")}.
+          sat waiting on a guess.
+          <PlaceholderMarker label="RESPONSE SLA" />
         </>
       ),
-      plain: `Two-hour arrival windows, and we ring when we leave the job before yours so you are not sat waiting on a guess. Our published response SLA is ${plain(business.responseSla)}.`,
+      plain: business.responseSla
+        ? `Two-hour arrival windows, and we ring when we leave the job before yours. Our published response time is ${business.responseSla}.`
+        : "Two-hour arrival windows, and we ring when we leave the job before yours so you are not sat waiting on a guess.",
     },
     {
       q: "Are your engineers subcontracted?",
@@ -131,16 +138,16 @@ function buildFaq(division: "commercial" | "domestic"): FaqItem[] {
         "Boiler, parts, labour, flue, controls and making good, plus the system cleanse and inhibitor, all stated on the quote rather than added afterwards. We commission it, complete the benchmark record and register the manufacturer warranty for you the same day.",
     },
     {
-      q: "What's your Gas Safe registration number?",
+      q: "How do I check you're Gas Safe registered?",
       a: (
         <>
-          Our registration number is {chip(business.gasSafeNumber, "GAS SAFE NUMBER")}. Every Gas
-          Safe engineer carries an ID card with their own licence number on it — ask to see it at
-          the door, and check it at gassaferegister.co.uk. You should do that with any engineer,
-          not just us.
+          {business.gasSafeNumber ? `Our registration number is ${business.gasSafeNumber}. ` : ""}
+          Every Gas Safe engineer carries an ID card with their own licence number on it. Ask to see
+          it at the door and check it at gassaferegister.co.uk — with any engineer, not just us.
+          {!business.gasSafeNumber && <PlaceholderMarker label="GAS SAFE NUMBER" />}
         </>
       ),
-      plain: `Our registration number is ${plain(business.gasSafeNumber)}. Every Gas Safe engineer carries an ID card with their own licence number on it — ask to see it at the door, and check it at gassaferegister.co.uk. You should do that with any engineer, not just us.`,
+      plain: `${business.gasSafeNumber ? `Our registration number is ${business.gasSafeNumber}. ` : ""}Every Gas Safe engineer carries an ID card with their own licence number on it. Ask to see it at the door and check it at gassaferegister.co.uk — with any engineer, not just us.`,
     },
   ];
 }
@@ -155,46 +162,32 @@ export function Faq() {
     mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.q,
-      // `plain`, not `a` — the visible answer is a React node so a chip can
-      // render inline, and JSON-LD needs text.
       acceptedAnswer: { "@type": "Answer", text: item.plain },
     })),
   };
 
   return (
-    <section
-      aria-labelledby="faq-heading"
-      className="mx-auto max-w-[100rem] px-6"
-      style={{ paddingTop: "var(--space-section-dense)", paddingBottom: "var(--space-section-dense)" }}
-    >
-      {/* `<` is escaped so a stray angle bracket in an answer can never close
-          the script tag early — same guard the LocalBusiness schema applies. */}
+    <section aria-labelledby="faq-heading" className="container-x section">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
 
-      <div className="grid gap-6 sm:gap-10 lg:grid-cols-12 lg:gap-16">
+      <div className="grid gap-8 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-4">
-          <span className="section-index font-mono-label" data-index="08" style={{ color: "var(--copper-ink)" }}>
+          <span className="font-mono-label" style={{ color: "var(--copper-ink)" }}>
             Questions
           </span>
-          <h2 id="faq-heading" className="font-display mt-4 text-3xl" style={{ color: "var(--ink)" }}>
+          <h2 id="faq-heading" className="font-display mt-3 text-3xl" style={{ color: "var(--ink)" }}>
             {division === "commercial"
               ? "What buyers ask before they shortlist us."
-              : "What people ask before they book us."}
+              : "Things people ask before they book."}
           </h2>
-          <p className="mt-5 max-w-[38ch] text-sm" style={{ color: "var(--steel)" }}>
-            Anything not answered here gets a straight answer on the phone. We would rather tell you
-            something you do not want to hear now than on the day.
+          <p className="mt-4 max-w-[38ch] text-base" style={{ color: "var(--steel)" }}>
+            Anything not covered here, ask us and we&rsquo;ll tell you straight.
           </p>
         </div>
 
-        {/* Not a <dl>: a <details> is not valid inside one, and wrapping a
-            <dt> in a <summary> means neither the list nor the term semantics
-            reach assistive tech. The disclosure semantics that <details> gives
-            for free are worth more here than a definition list that browsers
-            were not actually conveying. */}
         <div className="lg:col-span-8">
           {items.map((item) => (
             <details
@@ -208,23 +201,23 @@ export function Faq() {
                 }
               }}
             >
-              <summary className="flex items-start justify-between gap-6 py-5">
-                <h3 className="font-display text-xl leading-snug" style={{ color: "var(--ink)" }}>
+              <summary className="flex items-center justify-between gap-6 py-5">
+                <h3 className="font-display text-lg leading-snug" style={{ color: "var(--ink)", fontWeight: 700, textWrap: "pretty" }}>
                   {item.q}
                 </h3>
                 <span
                   aria-hidden="true"
-                  className="mt-1.5 shrink-0 transition-transform group-open:rotate-45"
-                  style={{ color: "var(--copper-ink)", transitionDuration: "var(--duration-transition)" }}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-transform group-open:rotate-45"
+                  style={{ background: "var(--flame-tint)", color: "var(--copper-ink)", transitionDuration: "var(--duration-transition)" }}
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M7 0v14M0 7h14" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                 </span>
               </summary>
               <div className="accordion-panel">
                 <div>
-                  <p className="max-w-[62ch] pb-6 pr-10 text-base" style={{ color: "var(--steel)" }}>
+                  <p className="max-w-[64ch] pb-6 pr-10 text-base leading-relaxed" style={{ color: "var(--steel)" }}>
                     {item.a}
                   </p>
                 </div>

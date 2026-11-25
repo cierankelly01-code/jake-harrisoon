@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DOMESTIC_PRICES, HAS_PUBLISHED_PRICES } from "@/lib/content/domestic-prices";
-import { FactOrPlaceholder } from "@/components/ui/placeholder";
+import { FactOrPlaceholder, PlaceholderMarker } from "@/components/ui/placeholder";
 
 export const metadata: Metadata = {
   title: HAS_PUBLISHED_PRICES ? "Prices" : "How we price",
   description:
-    "How Marmion prices domestic work: a fixed written price before we start, that does not move once we are on site.",
+    "How Hartson prices domestic work: a fixed written price before we start, that does not move once we are on site.",
 };
 
 /**
@@ -127,18 +127,20 @@ export default function PricesPage() {
                 Price list
               </span>
               <h2 id="pricelist-heading" className="font-display mt-4 text-3xl" style={{ color: "var(--ink)" }}>
-                {HAS_PUBLISHED_PRICES ? "Straightforward jobs." : "Published shortly."}
+                {HAS_PUBLISHED_PRICES ? "Straightforward jobs." : "Fixed prices, on request for now."}
               </h2>
               {!HAS_PUBLISHED_PRICES && (
                 <p className="mt-5 max-w-[40ch] text-base" style={{ color: "var(--steel)" }}>
-                  These are the jobs we will publish a flat price for. We would rather show that
-                  than put up a number we might have to argue with you about later — each one goes
-                  live once both directors have signed it off.
+                  These are the jobs we price as a flat figure. The published list goes live once
+                  both directors have signed every number off; until then, ask and you get the
+                  same fixed price by reply.
                 </p>
               )}
             </div>
 
             <div className="lg:col-span-8">
+              {HAS_PUBLISHED_PRICES ? (
+                <>
               <div
                 className="overflow-x-auto border"
                 style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)" }}
@@ -232,9 +234,39 @@ export default function PricesPage() {
                   a <td>, just not of the <tr> this used to sit in when the
                   whole column was conditionally omitted. A separate list
                   here now would just double up every marker. */}
-              <p className="font-mono-label mt-4" style={{ color: "var(--steel)" }}>
-                All prices include VAT · No callout fee on quoted work
-              </p>
+                </>
+              ) : (
+                <div className="card card--soft p-6 sm:p-8">
+                  <p className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
+                    Jobs we quote a flat price for
+                  </p>
+                  <ul className="mt-4 flex flex-wrap gap-2">
+                    {DOMESTIC_PRICES.map((line) => (
+                      <li key={line.job} className="chip" style={{ background: "#fff" }}>
+                        {line.job}
+                        <PlaceholderMarker label={`PRICE: ${line.job.toUpperCase()}`} />
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-5 text-sm" style={{ color: "var(--steel)" }}>
+                    Tell us which one and we&rsquo;ll give you the fixed figure straight away, or build a
+                    boiler price online now.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link href="/contact" className="btn btn--primary btn--sm">
+                      Request a callback
+                    </Link>
+                    <Link href="/boiler-quote" className="btn btn--secondary btn--sm">
+                      Get my fixed price
+                    </Link>
+                  </div>
+                </div>
+              )}
+              {HAS_PUBLISHED_PRICES && (
+                <p className="mt-4 text-xs" style={{ color: "var(--steel)" }}>
+                  All prices include VAT. No callout fee on quoted work.
+                </p>
+              )}
             </div>
           </div>
         </section>

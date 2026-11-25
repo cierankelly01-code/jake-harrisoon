@@ -3,129 +3,113 @@
 Everything visual on this site is driven from one file. If you want to re-skin
 it, change `src/app/globals.css` and nothing else.
 
+> **Round 5 (17 September 2026): full front-end redesign.** The client
+> reviewed the Neo-Industrial build (rounds 1–4) and rejected it as "too
+> AI-y" — the mono labels, drawing-sheet numbering, exposed hairlines and
+> clever copy read as generated. The benchmark they gave is boxt.co.uk: a
+> clean, friendly, consumer boiler site. Sections 1–5 below describe the
+> new direction; everything from §6 on is unchanged.
+
 ---
 
 ## 1. Art direction
 
-**Neo-Industrial.** The site should read like a drawing office: exposed
-structure, hairline rules, spec-sheet metadata, mechanical motion. It should
-never read like a template with a photo of a smiling engineer on it.
+**High-street clear.** The site should read like a well-run local firm's
+shop front: plain words, clear prices, rounded cards, lots of white. It
+borrows BOXT's *structure* (hero with price anchor + tick list, boiler types,
+why-us, three steps, engineers, pricing tiers, FAQ) and differs on the one
+thing BOXT can't claim — two named owners who quote and fit the work
+themselves — plus an instant estimator on the homepage instead of a gated
+questionnaire.
 
 | | |
 |---|---|
-| Display | Archivo, dialled to the wide end of its `wdth` axis (125) — this is "Archivo Expanded" without loading a second family |
-| Body | Instrument Sans |
-| Spec / micro-labels | Martian Mono, uppercase, 0.14em tracking |
-| Radius | **2px maximum, anywhere.** There are no rounded cards on this site |
-| Shadows | None. Depth comes from hairline borders and surface shifts |
-| Motion | Mechanical — `--ease-mech`, stepped and linear. Never springy |
+| Type | **Figtree only.** 800 for display (tracking −0.02/−0.03em), 400/500/600 for body and UI. No second family, no monospace anywhere. |
+| Colour | Navy `--ink` for headings and dark panels, white page, warm grey `--paper-raised` bands, **flame blue `--flame` for every action and nothing else**. Amber is reserved for emergency, warnings and unconfirmed-fact chips. |
+| Radius | 16px cards, 12px buttons/fields, 24px hero and CTA panels, pills for chips |
+| Shadows | None at rest. One soft shadow on hover (`--shadow-card`) and on the two "lifted" cards (estimator, quote wizard). |
+| Motion | Gentle rise-and-fade reveals (`--ease-enter`, 520ms), 150–260ms hover transitions. No marquees, no pinned scroll stories, no infinite loops. |
 
-**The colour rule.** Blue = correct combustion = the job done properly. Amber
-= incomplete combustion = danger. Amber is reserved for emergency, expiry and
-unconfirmed-fact contexts, and is **never** a CTA or decorative colour.
+The token **names** from the previous build were kept so every inner page
+kept rendering; only their values changed. So `--copper` is now the light
+border grey, `--copper-ink` the blue eyebrow colour, and `.font-mono-label`
+is a bold sans eyebrow, not monospace. `.section-index` no longer prints a
+number and `.grain` / `.blueprint-grid` are no-ops.
 
 ---
 
 ## 2. Tokens
 
 All in `:root` in `src/app/globals.css`, mirrored into Tailwind via
-`@theme inline`, so `bg-flame` and `var(--flame)` are the same value.
+`@theme inline`. Component classes (`.btn`, `.card`, `.chip`, `.tick`,
+`.field`, `.seg`) live in `@layer components` so Tailwind utilities such as
+`hidden md:inline-flex` still win over them — an unlayered `.btn { display }`
+once leaked two desktop buttons into the phone header.
 
-**Contrast pairs that matter** (all verified against WCAG AA):
+**Contrast pairs** (all verified AA):
 
 | Token | Use on | Ratio |
 |---|---|---|
-| `--copper` | Borders and rules only | — |
-| `--copper-ink` | Copper **text on `--paper`** | 5.26:1 |
-| `--copper-bright` | Copper **text on `--ink`** | 6.9:1 |
-| `--steel` | Secondary text on `--paper` | 5.99:1 |
-| `--steel-dim` | Secondary text on `--ink` | 8.9:1 |
-| `--amber` | Text/icons on `--ink` only | 8.17:1 |
-| `--amber-ink` | Warning text on `--paper` | 5.08:1 |
+| `--steel` | Secondary text on white | 6.4:1 |
+| `--steel-dim` | Secondary text on `--ink` | 8:1 |
+| `--copper-ink` | Eyebrow labels on white | 6.4:1 |
+| `--flame` | White text on it (buttons) | 5.2:1 |
+| `--amber-ink` | Warning text on white | 5.5:1 |
+| `--amber` | Warning text on `--ink` only | 8:1 |
 
-Using `--copper` for text on paper is 4.46:1 and **fails AA** — that is why
-`--copper-ink` exists. Same for `--steel-dim` on paper (2.42:1): don't.
-
-**Type** is fluid via `clamp()`. There is not a single `font-size` media query
-in the codebase. `--text-4xl` through `--text-6xl` scale with the viewport;
-body sizes are fixed.
-
-**Space.** `--space-section` (`clamp(4.5rem, 2.5rem + 6vw, 10rem)`) is the
-section-padding token. Use it, not the fixed endpoints.
+**Type** is fluid via `clamp()`. **Space:** `--space-section` (64→128px) for
+sections, `--space-section-tight` for secondary ones. Layout width is
+`--container` (76rem) via `.container-x`.
 
 ---
 
-## 3. Layout rhythm
-
-The homepage deliberately alternates light and dark so it has a pulse rather
-than running as one continuous cream field:
+## 3. Homepage order
 
 ```
-Hero            dark    hook + day-one proof
-Ticker          dark    what's covered — static spec-sheet index strip
-Commitments     light   the named guarantee
-Services        light   the offer
-Process ★       dark    THE SHOWSTOPPER
-Standards       dark    borrowed credibility + who turns up
-Comparison      light   objection handling
-Care plans      light   secondary offer (domestic only)
-Coverage        light   local proof
-FAQ             light   remaining objections
-Final CTA       blue    close
+Hero + instant estimate   headline, from-price, ticks, client's cutaway render; estimator card below
+Boiler types              combi / system / regular with line drawings
+What's included           three things usually charged as extras
+How it works              three steps + "what happens on the day" checklist
+Engineers                 the two directors + the standards the work is done to
+Comparison                Marmion vs common trade practice (stacks to cards on phones)
+Care plans                three tiers with real prices from lib/care-plans/tiers.ts
+Coverage                  town chips; radial map on md+ only
+FAQ                       <details> accordion, FAQPage JSON-LD
+Final CTA                 navy panel
 ```
 
-Standards and Founders (the two named directors) were separate sections
-through round 3; merged into one in round 4 (mobile ran 18+ viewports, and
-they were back-to-back "credibility" content) — see standards.tsx. Nothing
-was cut.
-
-The homepage ticker used to be an infinite-scroll marquee — also round 4,
-killed alongside the outlined footer wordmark as the two most
-template-legible elements on the page. See sectors-served.tsx.
-
-Sections announce their own index (`01`, `02`…) via the `.section-index`
-class and a `data-index` attribute — drawing-sheet numbering.
+Removed in this round: sectors ticker, commitments grid, the pinned
+process-story showstopper, standards/founders dark section, the Docket card
+and its generated art, the drawing-register 404, the outlined OG card.
 
 ---
 
-## 4. The showstopper
+## 4. The one interactive moment
 
-`src/components/home/process-story.tsx` is the site's **one** signature
-interactive moment. A pinned scroll story in which a heating system is drawn
-stage by stage: surveyed, priced, installed, commissioned. The blue flame
-lights only at the final stage — the brand's whole idea in one detail.
+`src/components/home/quick-price.tsx`. Four taps (property, current boiler,
+bedrooms, bathrooms) run the real `calculateQuote` engine in the browser and
+show the fitted range plus the recommended size. "Get my fixed price" writes
+the answers into the wizard's own localStorage key and the wizard opens on
+the first unanswered step with a one-line "we've kept your answers" note.
+Without JS the button is a plain link to `/boiler-quote`.
 
-Rules it obeys, and that any change must keep:
-
-- **Discrete states, never continuous scrubbing.** Smooth on weak devices.
-- **Desktop only.** Below 1024px it degrades to a plain stacked list. Touch
-  scroll is never hijacked.
-- **Reduced motion and no-JS land on the same static state**: every stage
-  visible, drawing complete.
-- Position is sampled once per frame *only while the section is on screen*,
-  via an IntersectionObserver that stops the loop dead when it leaves. A plain
-  scroll listener was not enough: it misses anchor jumps and scroll restores,
-  which left the story frozen on stage one while the reader looked at stage
-  four.
-
-Do not add a second big animated moment. The restraint everywhere else is what
-makes this one land.
+Note for the directors: only *current boiler type* changes the price bands
+in `lib/quote/pricing.ts`; bedrooms and bathrooms change the recommended kW.
+If size should also move the price, that's a pricing-config decision, not a
+front-end one.
 
 ---
 
 ## 5. Plugins
 
-Self-contained, token-driven, no dependencies.
-
 | Plugin | File | Notes |
 |---|---|---|
-| Sticky call bar | `components/plugins/sticky-call-bar.tsx` | Mobile, bottom-anchored, appears after 560px of scroll, safe-area inset, `inert` while off-screen so its links leave the tab order |
-| Turnstile widget | `components/security/turnstile-widget.tsx` | Renders nothing when no site key is set, matching the server's own stub. Writes into `turnstileToken`, which is the field `guard.ts` reads |
-| Comparison table | `components/plugins/comparison-table.tsx` | Names no competitor; right column describes common trade practice |
-| FAQ accordion | `components/home/faq.tsx` | `<details>`-based, works with JS off, emits FAQPage JSON-LD |
-| Pricing table | `components/care-plans/care-plans-section.tsx` | 3 tiers, "Most chosen" badge on the middle tier, high anchor on Complete |
-| Spec-sheet index strip | `components/home/sectors-served.tsx` | Static (round 4 — was an infinite-scroll marquee), single row, `overflow-x-auto` |
-| Counter | `components/ui/counter.tsx` | Odometer roll-in. Never animates a placeholder |
+| Sticky call bar | `components/plugins/sticky-call-bar.tsx` | Mobile, two actions (callback / quote), hidden on `/boiler-quote` and `/contact`, `inert` while off-screen. Becomes a real `tel:` button the day `business.phoneMain` is set. |
+| Callback form | `components/forms/callback-form.tsx` + `app/contact/actions.ts` | Name, phone, postcode, topic, best time. Turnstile + honeypot + rate limit via `guard.ts`; writes a `leads` row (type `general`, or `emergency` for breakdown/leak) and emails the directors. |
+| Comparison table | `components/plugins/comparison-table.tsx` | Table on md+, cards below. Names no competitor. |
+| FAQ accordion | `components/home/faq.tsx` | Native `<details>`; questions whose answer would be "to be confirmed" are reworded rather than shown with a chip. |
+| Pricing tiers | `components/care-plans/care-plans-section.tsx` | "Recommended" badge, never "most chosen" — there is no customer data to support that yet. |
+| Quote wizard | `components/quote/quote-wizard.tsx` | Location step is now chips; result screen ends on "Book my free survey" with the PDF demoted to a text link. |
 
 ---
 
@@ -198,9 +182,12 @@ That file is what replaced three consecutive "nothing here yet" sections.
 - [ ] Directors sign off `lib/quote/pricing.ts` and `lib/care-plans/tiers.ts`.
       Both currently hold starter figures.
 - [ ] Solicitor reviews `/privacy` and `/terms`.
-- [ ] Real photography to replace `DocketFallbackArt` and the founders'
-      competency cards. Never substitute stock photography — it is the single
-      fastest way to look like every other trade site.
+- [ ] Real photographs of Jake and Harrison (and a van, and a fitted
+      boiler) for the "Who turns up" cards and, ideally, the hero. Never
+      substitute stock photography. The cutaway render in `public/` was
+      supplied by the client; a real photo would convert harder.
+- [ ] Three real reviews with name, town and month, and a Google rating,
+      for the space under the hero.
 - [ ] Smoke test on a real phone, not devtools emulation.
 
 ## 10. Solved: the Commercial division has a real URL

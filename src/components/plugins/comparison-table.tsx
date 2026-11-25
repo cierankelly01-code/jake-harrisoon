@@ -1,113 +1,105 @@
 import { COMPARISON_ROWS } from "@/lib/content/promises";
+import { Cross, Tick } from "@/components/ui/icons";
 
 /**
- * PLUGIN — comparison table.
- *
- * Names no competitor: the right-hand column describes common practice in
- * the trade, which is a fair characterisation rather than a claim about any
- * identifiable firm. Every left-hand entry is a commitment published
- * elsewhere on this site, so nothing here is a new promise.
- *
- * Mobile: the table scrolls horizontally inside its own container rather
- * than reflowing into unreadable stacked cells. A fresh reviewer found that
- * this comment used to claim a "shadow affordance" that was never actually
- * built — below ~700px there was no visual cue at all that the third
- * column existed, and the second column's own text sat right at the clip
- * edge, cut mid-word with nothing to signal "there's more, scroll". Fixed
- * with a real edge-fade (CSS-only, no JS: a `background-attachment: local`
- * gradient scrolls with the content and disappears once you've scrolled
- * past that edge) plus an explicit text hint below `lg`, where the table's
- * fixed 44rem min-width no longer fits its container.
+ * Hartson vs. common trade practice. The right-hand column names no firm.
+ * Below `lg` the table scrolls sideways with a fade cue.
  */
 export function ComparisonTable() {
   return (
-    <section
-      aria-labelledby="comparison-heading"
-      className="mx-auto max-w-[100rem] px-6"
-      style={{ paddingTop: "var(--space-section-dense)", paddingBottom: "var(--space-section-dense)" }}
-    >
-      <span className="section-index font-mono-label" data-index="05" style={{ color: "var(--copper-ink)" }}>
-        Straight comparison
-      </span>
-      <h2 id="comparison-heading" className="font-display mt-4 max-w-[24ch] text-3xl" style={{ color: "var(--ink)" }}>
-        The differences that actually show up on the invoice.
-      </h2>
-      <p className="mt-2 font-mono-label lg:hidden" style={{ color: "var(--steel)" }}>
-        ← Scroll to see the third column →
-      </p>
+    <section aria-labelledby="comparison-heading" className="section--tight" style={{ background: "var(--paper-raised)" }}>
+      <div className="container-x">
+        <div className="max-w-[60ch]">
+          <span className="font-mono-label" style={{ color: "var(--copper-ink)" }}>
+            Straight comparison
+          </span>
+          <h2 id="comparison-heading" className="font-display mt-3 text-3xl" style={{ color: "var(--ink)" }}>
+            The differences that show up on the invoice.
+          </h2>
+        </div>
+        {/* Phones: one card per row, both answers visible. No sideways scrolling. */}
+        <ul className="mt-6 grid gap-3 md:hidden">
+          {COMPARISON_ROWS.map((row) => (
+            <li key={row.point} className="card p-4">
+              <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>
+                {row.point}
+              </p>
+              <div className="mt-3 flex items-start gap-2.5">
+                <span className="tick" aria-hidden="true">
+                  <Tick />
+                </span>
+                <p className="text-sm">
+                  <span className="font-semibold" style={{ color: "var(--copper-ink)" }}>Hartson: </span>
+                  <span style={{ color: "var(--ink)" }}>{row.us}</span>
+                </p>
+              </div>
+              <div className="mt-2 flex items-start gap-2.5">
+                <span className="tick" aria-hidden="true" style={{ background: "#eef1ee", color: "var(--steel)" }}>
+                  <Cross />
+                </span>
+                <p className="text-sm" style={{ color: "var(--steel)" }}>
+                  <span className="font-semibold">Common in the trade: </span>
+                  {row.typical}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
 
-      <div
-        className="scroll-fade-x mt-4 overflow-x-auto border lg:mt-10"
-        style={{ borderColor: "var(--border-hairline)", borderRadius: "var(--radius)" }}
-      >
-        <table className="w-full border-collapse text-left" style={{ minWidth: "44rem" }}>
-          <caption className="sr-only">
-            How Marmion works compared with common practice in the heating trade
-          </caption>
-          <thead>
-            <tr style={{ background: "var(--ink)" }}>
-              <th
-                scope="col"
-                className="font-mono-label px-5 py-4"
-                style={{ color: "var(--steel-dim)", width: "30%" }}
-              >
-                On the job
-              </th>
-              <th
-                scope="col"
-                className="font-mono-label px-5 py-4"
-                style={{ color: "var(--paper)", background: "var(--flame-deep)", width: "36%" }}
-              >
-                Marmion
-              </th>
-              <th scope="col" className="font-mono-label px-5 py-4" style={{ color: "var(--steel-dim)", width: "34%" }}>
-                Common in the trade
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMPARISON_ROWS.map((row, index) => (
-              <tr
-                key={row.point}
-                style={{
-                  background: index % 2 === 0 ? "var(--surface)" : "var(--surface-raised)",
-                  borderTop: "1px solid var(--border-hairline)",
-                }}
-              >
-                <th scope="row" className="px-5 py-4 text-sm font-medium" style={{ color: "var(--ink)" }}>
-                  {row.point}
+        <div
+          className="mt-10 hidden overflow-hidden md:block"
+          style={{ border: "1px solid var(--border-hairline)", borderRadius: "var(--radius)", background: "#fff" }}
+        >
+          <table className="w-full border-collapse text-left">
+            <caption className="sr-only">How Hartson works compared with common practice in the heating trade</caption>
+            <thead>
+              <tr>
+                <th scope="col" className="px-5 py-4 text-sm font-semibold" style={{ color: "var(--steel)", width: "30%" }}>
+                  On the job
                 </th>
-                <td
-                  className="px-5 py-4 text-sm"
-                  style={{
-                    color: "var(--ink)",
-                    background: "color-mix(in srgb, var(--flame) 7%, transparent)",
-                    borderInline: "1px solid var(--border-hairline)",
-                  }}
+                <th
+                  scope="col"
+                  className="px-5 py-4 text-sm font-bold"
+                  style={{ color: "var(--copper-ink)", background: "var(--flame-tint)", width: "36%", borderRadius: "12px 12px 0 0" }}
                 >
-                  <span className="flex items-start gap-2.5">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="mt-1 shrink-0">
-                      <path d="M2 7.5L5.5 11L12 3.5" stroke="var(--flame)" strokeWidth="2" />
-                    </svg>
-                    {row.us}
-                  </span>
-                </td>
-                <td className="px-5 py-4 text-sm" style={{ color: "var(--steel)" }}>
-                  <span className="flex items-start gap-2.5">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="mt-1 shrink-0">
-                      <path d="M3 3L11 11M11 3L3 11" stroke="var(--steel)" strokeWidth="1.6" />
-                    </svg>
-                    {row.typical}
-                  </span>
-                </td>
+                  Hartson
+                </th>
+                <th scope="col" className="px-5 py-4 text-sm font-semibold" style={{ color: "var(--steel)", width: "34%" }}>
+                  Common in the trade
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {COMPARISON_ROWS.map((row) => (
+                <tr key={row.point} style={{ borderTop: "1px solid var(--border-hairline)" }}>
+                  <th scope="row" className="px-5 py-4 text-sm font-semibold" style={{ color: "var(--ink)" }}>
+                    {row.point}
+                  </th>
+                  <td className="px-5 py-4 text-sm" style={{ color: "var(--ink)", background: "color-mix(in srgb, var(--flame-tint) 55%, #fff)" }}>
+                    <span className="flex items-start gap-2.5">
+                      <span className="tick" aria-hidden="true">
+                        <Tick />
+                      </span>
+                      <span className="font-medium">{row.us}</span>
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-sm" style={{ color: "var(--steel)" }}>
+                    <span className="flex items-start gap-2.5">
+                      <span className="tick" aria-hidden="true" style={{ background: "#eef1ee", color: "var(--steel)" }}>
+                        <Cross />
+                      </span>
+                      {row.typical}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-4 text-xs" style={{ color: "var(--steel)" }}>
+          The right-hand column describes common practice in the trade. No individual firm is referred to.
+        </p>
       </div>
-      <p className="font-mono-label mt-4" style={{ color: "var(--steel)" }}>
-        Right-hand column describes common practice in the trade. No individual firm is referred to.
-      </p>
     </section>
   );
 }
